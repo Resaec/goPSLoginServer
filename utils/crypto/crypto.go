@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/Resaec/go-md5mac"
-	"github.com/alfiankan/RC5-golang-implementation/rc5"
+	"github.com/Resaec/go-rc5/rc5"
 )
 
 const (
