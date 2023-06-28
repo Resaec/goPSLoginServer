@@ -1,0 +1,8 @@
+github.com/Resaec/go-md5mac v0.0.0-20230619022256-7ac38a1edf26 h1:VqcLLGkVTeE2jK69NUlll6ckoE9jO3FWWplze32x8+w=
+github.com/Resaec/go-md5mac v0.0.0-20230619022256-7ac38a1edf26/go.mod h1:fPN3LdBo7w5DbedGOfbblnd2Ky1ym8YarH15//YH6sk=
+github.com/Resaec/go-md5mac v0.0.0-20230628131326-75658997906d h1:QfMPCclSSrmAtcy3RzVJHQahzrMKRoxiCX6xDCQbt/o=
+github.com/Resaec/go-md5mac v0.0.0-20230628131326-75658997906d/go.mod h1:fPN3LdBo7w5DbedGOfbblnd2Ky1ym8YarH15//YH6sk=
+github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 h1:UsjqpfLSsCM5SVN5OGhiWJnxDokyT74E6Ahj6kVZxh8=
+github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4/go.mod h1:/cxRiYq8L/bpGLJJJ7mN66Qv2nj915TfJdujDVyYVGA=
+golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df h1:UA2aFVmmsIlefxMk29Dp2juaUSth8Pyn3Tq5Y5mJGME=
+golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
