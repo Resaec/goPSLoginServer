@@ -135,7 +135,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("Agreed with: %X", agreedValue)
+	logging.Infof("Agreed with: %X", agreedValue.Bytes())
 
 	// Generate the master secret
 	agreedMessage := make([]uint8, 0)
@@ -147,7 +147,9 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	agreedMessage = append(agreedMessage, s.StoredServerChallenge...)
 	agreedMessage = append(agreedMessage, []uint8{0x00, 0x00, 0x00, 0x00}...)
 
-	masterSecret = make([]uint8, 20)
+	logging.Infof("adreedMessage: %X", agreedMessage)
+
+	masterSecret = make([]uint8, 16)
 	err = crypto.CalcMD5Mac(agreedValue.Bytes(), agreedMessage, &masterSecret)
 	if err != nil {
 		logging.Errf("Could not calculate MAC for masterSecret: %v", err)

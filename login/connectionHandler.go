@@ -67,28 +67,28 @@ func handleControlPacket(
 			response, err = handleClientStart(stream)
 		}
 
-	case packet.CPOpcode_ControlSync:
-		{
-
-		}
-
-	case
-		packet.CPOpcode_SlottedMetaPacket0,
-		packet.CPOpcode_SlottedMetaPacket1,
-		packet.CPOpcode_SlottedMetaPacket2,
-		packet.CPOpcode_SlottedMetaPacket3,
-		packet.CPOpcode_SlottedMetaPacket4,
-		packet.CPOpcode_SlottedMetaPacket5,
-		packet.CPOpcode_SlottedMetaPacket6,
-		packet.CPOpcode_SlottedMetaPacket7:
-		{
-
-		}
-
-	case packet.CPOpcode_MultiPacket:
-		{
-
-		}
+	// case packet.CPOpcode_ControlSync:
+	// 	{
+	//
+	// 	}
+	//
+	// case
+	// 	packet.CPOpcode_SlottedMetaPacket0,
+	// 	packet.CPOpcode_SlottedMetaPacket1,
+	// 	packet.CPOpcode_SlottedMetaPacket2,
+	// 	packet.CPOpcode_SlottedMetaPacket3,
+	// 	packet.CPOpcode_SlottedMetaPacket4,
+	// 	packet.CPOpcode_SlottedMetaPacket5,
+	// 	packet.CPOpcode_SlottedMetaPacket6,
+	// 	packet.CPOpcode_SlottedMetaPacket7:
+	// 	{
+	//
+	// 	}
+	//
+	// case packet.CPOpcode_MultiPacket:
+	// 	{
+	//
+	// 	}
 
 	case packet.CPOpcode_ConnectionClose:
 		{
@@ -159,7 +159,7 @@ func handleCryptoInit(
 	}
 
 	// +3 to skip crypto header
-	sess.MacBuffer = append(sess.MacBuffer, stream.GetBufferFromByte(3)...)
+	sess.MacBuffer = append(sess.MacBuffer, response.GetBufferFromByte(3)...)
 
 	return
 }
@@ -259,7 +259,10 @@ func encodeHeaderCrypto(stream *bitstream.BitStream) {
 		SeqNum:       0,
 	}
 
-	packetHeader.Encode(stream)
+	err := packetHeader.Encode(stream)
+	if err != nil {
+		logging.Errf("Error encoding crypto header: %v", err)
+	}
 
 }
 
@@ -274,7 +277,10 @@ func encodeHeaderEncrypted(stream *bitstream.BitStream) {
 		SeqNum:       0,
 	}
 
-	packetHeader.Encode(stream)
+	err := packetHeader.Encode(stream)
+	if err != nil {
+		logging.Errf("Error encoding encrypted header: %v", err)
+	}
 
 	// pad for encrypt align
 	stream.WriteUint8(0x00)
