@@ -35,6 +35,7 @@ func (p *LoginRespMessage) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteUint32(p.Unk1)
 	stream.WriteString(p.Username)
 	stream.WriteUint32(p.Privilege)
+	stream.WriteBool(p.Privilege != 0)
 
 	return nil
 }

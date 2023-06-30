@@ -61,7 +61,7 @@ func handleDecryptedControlPacket(
 		packet.CPOpcode_SlottedMetaPacket6,
 		packet.CPOpcode_SlottedMetaPacket7:
 		{
-			return nil, fmt.Errorf(packet.PACKET_OPCODE_NOT_IMPLEMENTED_NORMAL_CONTROL, opcode)
+			return handleSlottedMetaPacket(stream, sess)
 		}
 
 	case packet.CPOpcode_MultiPacket:
@@ -108,11 +108,61 @@ func handleControlSync(
 
 	response = &bitstream.BitStream{}
 
-	err = controlSyncResp.Encode(stream)
+	err = controlSyncResp.Encode(response)
 	if err != nil {
 		err = fmt.Errorf("Failed to encode ControlSyncResp packet: %v", err)
 		return
 	}
 
+	time.Sleep(time.Millisecond * 500)
+
 	return
+}
+
+func handleSlottedMetaPacket(
+	stream *bitstream.BitStream,
+	sess *session.Session,
+) (response *bitstream.BitStream, err error) {
+
+	var (
+		slottedMetaPacket controlPacket.SlottedMetaPacket
+		slottedMetaAck    *controlPacket.SlottedMetaAck
+	)
+
+	logging.Infoln("Handling SlottedMetaPacket")
+
+	err = slottedMetaPacket.Decode(stream)
+	if err != nil {
+		err = fmt.Errorf("Error decoding SlottedMetaPacket")
+		return
+	}
+
+	// TODO: follow slotting mechanism
+
+	slottedMetaAck = &controlPacket.SlottedMetaAck{}
+	slottedMetaAck.Slot = slottedMetaPacket.Slot
+	slottedMetaAck.Subslot = slottedMetaPacket.Subslot
+
+	response = &bitstream.BitStream{}
+
+	err = slottedMetaAck.Encode(response)
+	if err != nil {
+		err = fmt.Errorf("Failed to encode SlottedMetaAck packet: %v", err)
+		return
+	}
+
+	// send Ack to SlottedMetaPacket
+	err = SendEncryptedPacket(response, sess)
+	if err != nil {
+		err = fmt.Errorf("Error sending SlottedMetaAck packet: %v", err)
+		return
+	}
+
+	logging.Infof("Inner: %X", slottedMetaPacket.Rest)
+
+	// write packet from slotted to stream
+	stream = bitstream.NewBitStream(slottedMetaPacket.Rest)
+
+	// handle packet
+	return handleDecryptedPacket(stream, sess)
 }

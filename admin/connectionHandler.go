@@ -6,37 +6,36 @@ import (
 	"time"
 
 	"goPSLoginServer/utils"
-	"goPSLoginServer/utils/connection"
 	"goPSLoginServer/utils/logging"
 )
 
 func HandleAdmin(port int32) {
 
-	var (
-		err error
-
-		conn     *net.TCPConn
-		listener *net.TCPListener
-	)
-
-	listener, err = connection.CreateSocketTCP(port)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer listener.Close()
-
-	for {
-		conn, err = listener.AcceptTCP()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		utils.GlobalWaitGroup.Add(1)
-
-		go handleRequest(conn)
-	}
+	// var (
+	// 	err error
+	//
+	// 	conn     *net.TCPConn
+	// 	listener *net.TCPListener
+	// )
+	//
+	// listener, err = connection.CreateSocketTCP(port)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// defer listener.Close()
+	//
+	// for {
+	// 	conn, err = listener.AcceptTCP()
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		return
+	// 	}
+	//
+	// 	utils.GlobalWaitGroup.Add(1)
+	//
+	// 	go handleRequest(conn)
+	// }
 
 	utils.GlobalWaitGroup.Done()
 

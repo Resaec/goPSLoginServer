@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"unicode/utf16"
 
 	"golang.org/x/exp/constraints"
 )
@@ -452,12 +453,57 @@ func (bs *BitStream) WriteString(buffer []uint8) {
 		strLen = len(buffer)
 	)
 
-	bs.WriteUint16(uint16(strLen))
+	if strLen < 128 {
+
+		// add flag
+		strLen |= 0x80
+		bs.WriteUint8(uint8(strLen))
+
+	} else {
+
+		bs.WriteUint16(uint16(strLen))
+
+	}
 
 	// align to next byte
 	bs.AlignPos()
 
 	bs.WriteBytes(buffer)
+}
+
+func (bs *BitStream) WriteStringW(buffer []uint8) {
+
+	var (
+		strLen = len(buffer)
+		runes  = make([]rune, strLen)
+
+		wString []uint16
+	)
+
+	if strLen < 128 {
+
+		// add flag
+		strLen |= 0x80
+		bs.WriteUint8(uint8(strLen))
+
+	} else {
+
+		bs.WriteUint16(uint16(strLen))
+
+	}
+
+	// align to next byte
+	bs.AlignPos()
+
+	for i := 0; i < len(runes); i++ {
+		runes[i] = rune(buffer[i])
+	}
+
+	wString = utf16.Encode(runes)
+
+	for _, char := range wString {
+		bs.WriteUint16(char)
+	}
 }
 
 // SetBitPos sets the current stream position in bits.

@@ -1,5 +1,10 @@
 package session
 
+import (
+	"encoding/binary"
+	"net"
+)
+
 type sessionHandler struct {
 	sessions map[uint32]*Session
 }
@@ -16,12 +21,13 @@ func GetSessionHandler() *sessionHandler {
 	return instance
 }
 
-func (sh *sessionHandler) GetOrCreateSession(clientEndpoint uint32, isClientStartup bool) *Session {
+func (sh *sessionHandler) GetOrCreateSession(clientEndpoint *net.UDPAddr, isClientStartup bool) *Session {
 
 	var (
 		newSession *Session
 
-		session, ok = sh.sessions[clientEndpoint]
+		hash        = binary.LittleEndian.Uint32(clientEndpoint.IP)
+		session, ok = sh.sessions[hash]
 	)
 
 	// if session exists return it
@@ -38,7 +44,7 @@ func (sh *sessionHandler) GetOrCreateSession(clientEndpoint uint32, isClientStar
 	newSession = NewSession(clientEndpoint)
 
 	// add session to session handler
-	sh.sessions[clientEndpoint] = newSession
+	sh.sessions[hash] = newSession
 
 	return newSession
 }

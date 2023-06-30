@@ -5,12 +5,12 @@ import (
 	"net"
 )
 
-func CreateSocketUDP(port int32) (socket *net.UDPConn, err error) {
+func createSocketUDP(host string, port int32) (socket *net.UDPConn, err error) {
 
 	var (
 		address *net.UDPAddr
 
-		addressPort = fmt.Sprintf(":%d", port)
+		addressPort = fmt.Sprintf("%s:%d", host, port)
 	)
 
 	address, err = net.ResolveUDPAddr("udp4", addressPort)
@@ -28,12 +28,12 @@ func CreateSocketUDP(port int32) (socket *net.UDPConn, err error) {
 	return
 }
 
-func CreateSocketTCP(port int32) (listener *net.TCPListener, err error) {
+func createSocketTCP(host string, port int32) (listener *net.TCPListener, err error) {
 
 	var (
 		address *net.TCPAddr
 
-		addressPort = fmt.Sprintf(":%d", port)
+		addressPort = fmt.Sprintf("%s:%d", host, port)
 	)
 
 	address, err = net.ResolveTCPAddr("tcp4", addressPort)

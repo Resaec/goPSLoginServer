@@ -200,7 +200,7 @@ func IsValidRC5Buffer(buffer []byte) bool {
 
 func GenerateToken() (token []uint8) {
 
-	token = make([]uint8, 32)
+	token = make([]uint8, 16)
 	_, _ = rand.Read(token)
 
 	return

@@ -32,6 +32,12 @@ func handleControlPacket(
 			response, err = handleClientStart(stream)
 		}
 
+	case packet.CPOpcode_TeardownConnection:
+		{
+			// TODO: kill session?
+			logging.Infoln("Received TeardownConnection")
+		}
+
 	case packet.CPOpcode_ConnectionClose:
 		{
 			logging.Infoln("Received ConnectionClose")

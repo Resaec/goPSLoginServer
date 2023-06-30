@@ -1,8 +1,6 @@
 package login
 
 import (
-	"encoding/binary"
-	"fmt"
 	"net"
 
 	"goPSLoginServer/packet/packetHandler"
@@ -18,27 +16,15 @@ func HandleLogin(port int32) {
 	var (
 		err error
 
-		responseBuffer []uint8
-
-		readCount   int
-		readAddress *net.UDPAddr
-
-		writeCount int
-
-		socket   *net.UDPConn
-		response *bitstream.BitStream
-
 		sess *session.Session
-
-		buffer = make([]uint8, 1024*2)
 	)
 
-	socket, err = connection.CreateSocketUDP(port)
+	utils.LoginUDPSocket, err = connection.NewSocket("", port, connection.SocketType_UDP)
 	if err != nil {
-		fmt.Println(err)
+		logging.Errf("Error creating new socket: %v", err)
 		return
 	}
-	defer socket.Close()
+	defer utils.LoginUDPSocket.CloseSocket()
 
 	for {
 
@@ -47,14 +33,19 @@ func HandleLogin(port int32) {
 
 			header uint8
 
+			buffer []uint8
+
+			readCount            int
+			readAddress          *net.UDPAddr
+			readAddressInterface interface{}
+
+			response *bitstream.BitStream
+
 			stream *bitstream.BitStream
 		)
 
-		readCount, readAddress, err = socket.ReadFromUDP(buffer)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
+		buffer, readCount, readAddressInterface, err = utils.LoginUDPSocket.ReadFromSocket()
+		readAddress = (readAddressInterface).(*net.UDPAddr)
 
 		stream = bitstream.NewBitStream(buffer[:readCount])
 
@@ -69,19 +60,16 @@ func HandleLogin(port int32) {
 			isClientStartup = true
 		}
 
-		// get clientEndpoint hash from connecting IP
-		hash := binary.LittleEndian.Uint32(readAddress.IP)
+		logging.LogPacket("UDP", "Login", utils.LoginUDPSocket.GetLocalAddress(), readAddress, buffer[:readCount], true)
 
-		// get session by endpoint hash
-		sess = session.GetSessionHandler().GetOrCreateSession(hash, isClientStartup)
+		// get session by endpoint
+		sess = session.GetSessionHandler().GetOrCreateSession(readAddress, isClientStartup)
 
 		// check for invalid packet
 		if sess == nil {
 			logging.Errf("Dropping packet for client %v because it arrived out of session!", readAddress.IP)
 			continue
 		}
-
-		logging.LogPacket("UDP", "Login", socket.LocalAddr(), readAddress, buffer[:readCount], true)
 
 		response, err = packetHandler.HandlePacket(stream, sess)
 		if err != nil {
@@ -91,6 +79,7 @@ func HandleLogin(port int32) {
 				readAddress.Port,
 				err,
 			)
+
 			continue
 		}
 
@@ -100,31 +89,14 @@ func HandleLogin(port int32) {
 				readAddress.IP,
 				readAddress.Port,
 			)
-		}
 
-		responseBuffer = response.GetBuffer()
-
-		logging.LogPacket("UDP", "Login", socket.LocalAddr(), readAddress, responseBuffer, false)
-
-		writeCount, err = socket.WriteToUDP(responseBuffer, readAddress)
-		if err != nil {
-			logging.Errf(
-				"Error answering packet for client %s:%d: %v\n",
-				readAddress.IP,
-				readAddress.Port,
-				err,
-			)
 			continue
 		}
 
-		if uint32(writeCount) != response.GetSize() {
-			logging.Warnf(
-				"WriteCount of response is not equal to response size %d / %d for client %s:%d\n",
-				writeCount,
-				response.GetSize(),
-				readAddress.IP,
-				readAddress.Port,
-			)
+		err = packetHandler.SendPacket(response, sess)
+		if err != nil {
+			logging.Errf("Error sending packet: %v", err)
+			continue
 		}
 	}
 

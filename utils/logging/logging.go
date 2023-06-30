@@ -19,6 +19,16 @@ func log(message string) {
 	writeLock.Unlock()
 }
 
+func Debugln(message string) {
+
+	// log(fmt.Sprintf("[DEBUG] %s", message))
+}
+
+func Debugf(format string, data ...interface{}) {
+
+	// Infoln(fmt.Sprintf(format, data...))
+}
+
 func Infoln(message string) {
 
 	log(fmt.Sprintf("[INFO] %s", message))
@@ -73,5 +83,5 @@ func LogPacket(proto string, source string, local net.Addr, remote net.Addr, pac
 		packet,
 	)
 
-	log(message)
+	Debugln(message)
 }

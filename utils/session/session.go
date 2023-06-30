@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"net"
 	"time"
 
 	"github.com/Resaec/go-md5mac"
@@ -24,7 +25,7 @@ const (
 )
 
 type Session struct {
-	ClientEndpoint uint32
+	ClientEndpoint *net.UDPAddr
 
 	CryptoState int
 
@@ -59,7 +60,7 @@ const (
 	strServerFinished  = "server finished"
 )
 
-func NewSession(clientEndpoint uint32) *Session {
+func NewSession(clientEndpoint *net.UDPAddr) *Session {
 	return &Session{
 		ClientEndpoint: clientEndpoint,
 		CryptoState:    CryptoState_Init,
@@ -121,7 +122,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("Agreed with: %X", agreedValue.Bytes())
+	logging.Debugf("Agreed with: %X", agreedValue.Bytes())
 
 	// Generate the master secret
 	agreedMessage := make([]uint8, 0)
@@ -133,7 +134,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	agreedMessage = append(agreedMessage, s.StoredServerChallenge...)
 	agreedMessage = append(agreedMessage, []uint8{0x00, 0x00, 0x00, 0x00}...)
 
-	logging.Infof("adreedMessage: %X", agreedMessage)
+	logging.Debugf("adreedMessage: %X", agreedMessage)
 
 	masterSecret = make([]uint8, 16)
 	err = crypto.CalcMD5Mac(agreedValue.Bytes(), agreedMessage, &masterSecret)
@@ -142,7 +143,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("masterSecret: %X", masterSecret)
+	logging.Debugf("masterSecret: %X", masterSecret)
 
 	// Generate RC5 and MAC encryption keys
 	switchedServerClientChallenges := make([]uint8, 0)
@@ -158,14 +159,14 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	decExpansionBuffer = append(decExpansionBuffer, []byte{0x00, 0x00}...)
 	decExpansionBuffer = append(decExpansionBuffer, switchedServerClientChallenges...)
 
-	logging.Infof("decExpansionBuffer: %X", decExpansionBuffer)
+	logging.Debugf("decExpansionBuffer: %X", decExpansionBuffer)
 
 	encExpansionBuffer := make([]byte, 0)
 	encExpansionBuffer = append(encExpansionBuffer, []byte(strServerExpansion)...)
 	encExpansionBuffer = append(encExpansionBuffer, []byte{0x00, 0x00}...)
 	encExpansionBuffer = append(encExpansionBuffer, switchedServerClientChallenges...)
 
-	logging.Infof("encExpansionBuffer: %X", encExpansionBuffer)
+	logging.Debugf("encExpansionBuffer: %X", encExpansionBuffer)
 
 	expandedDecKey = make([]uint8, 64)
 	err = crypto.CalcMD5Mac(masterSecret, decExpansionBuffer, &expandedDecKey)
@@ -174,7 +175,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("expandedDecKey: %X", expandedDecKey)
+	logging.Debugf("expandedDecKey: %X", expandedDecKey)
 
 	expandedEncKey = make([]uint8, 64)
 	err = crypto.CalcMD5Mac(masterSecret, encExpansionBuffer, &expandedEncKey)
@@ -183,7 +184,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("expandedEncKey: %X", expandedEncKey)
+	logging.Debugf("expandedEncKey: %X", expandedEncKey)
 
 	// decKey := make([]byte, 20)
 	// copy(decKey[:], expandedDecKey[:20])
@@ -201,10 +202,10 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	// copy(EncMACKey[:], expandedEncKey[20:36])
 	s.EncMACKey = expandedEncKey[20 : 20+16]
 
-	logging.Infof("decKey:    %X", s.DecRC5Key)
-	logging.Infof("encKey:    %X", s.EncRC5Key)
-	logging.Infof("DecMACKey: %X", s.DecMACKey)
-	logging.Infof("EncMACKey: %X", s.EncMACKey)
+	logging.Debugf("decKey:    %X", s.DecRC5Key)
+	logging.Debugf("encKey:    %X", s.EncRC5Key)
+	logging.Debugf("DecMACKey: %X", s.DecMACKey)
+	logging.Debugf("EncMACKey: %X", s.EncMACKey)
 
 	// Generate server challenge result
 	serverChallengeResultBuffer := make([]byte, 0)
@@ -219,7 +220,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 		return
 	}
 
-	logging.Infof("ServerChallengeResult: %X", s.ServerChallengeResult)
+	logging.Debugf("ServerChallengeResult: %X", s.ServerChallengeResult)
 
 	// MAC buffer no longer needed
 	s.MacBuffer = nil
@@ -253,12 +254,12 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 		return
 	}
 
-	logging.Infof("%18s %X", "Pre Decode", data)
+	logging.Debugf("%18s %X", "Pre Decode", data)
 
 	// decrypt message
 	data = crypto.DecryptPacket(data, s.DecRC5Key)
 
-	logging.Infof("%18s %X", "Post Decode", data)
+	logging.Debugf("%18s %X", "Post Decode", data)
 
 	// get RC5 padding len
 	paddingUsed = int(data[len(data)-1])
@@ -269,7 +270,7 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	// remove padding from data
 	data = data[:len(data)-paddingUsed]
 
-	logging.Infof("%18s %X", "Message - Padding", data)
+	logging.Debugf("%18s %X", "Message - Padding", data)
 
 	messageAndMacLen = len(data)
 	if messageAndMacLen < md5mac.MACLENGTH {
@@ -280,12 +281,12 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	// get MAC
 	messageMAC = data[messageAndMacLen-md5mac.MACLENGTH:]
 
-	logging.Infof("%18s %X", "MAC", messageMAC)
+	logging.Debugf("%18s %X", "MAC", messageMAC)
 
 	// drop MAC from data
 	data = data[:messageAndMacLen-md5mac.MACLENGTH]
 
-	logging.Infof("%18s %X", "Message - MAC", data)
+	logging.Debugf("%18s %X", "Message - MAC", data)
 
 	mac, err = md5mac.NewMD5MACWithKey(s.DecMACKey)
 	if err != nil {
@@ -296,7 +297,7 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	// generate MAC for received message
 	calculatedMac = mac.UpdateFinalize(data)
 
-	logging.Infof("%18s %X", "Calculated MAC", calculatedMac)
+	logging.Debugf("%18s %X", "Calculated MAC", calculatedMac)
 
 	// check MACs match
 	if slices.Compare(calculatedMac, messageMAC) != 0 {
@@ -338,7 +339,7 @@ func (s *Session) EncryptPacket(data *[]uint8) bool {
 
 	message = append(message, *data...)
 
-	logging.Infof("%18s %X", "Message", message)
+	logging.Debugf("%18s %X", "Message", message)
 
 	// get mac of message
 	mac, err = md5mac.NewMD5MACWithKey(s.EncMACKey)
@@ -349,30 +350,30 @@ func (s *Session) EncryptPacket(data *[]uint8) bool {
 
 	calculatedMac = mac.UpdateFinalize(message)
 
-	logging.Infof("%18s %X", "MAC", calculatedMac)
+	logging.Debugf("%18s %X", "MAC", calculatedMac)
 
 	// append mac to message
 	message = append(message, calculatedMac...)
 
-	logging.Infof("%18s %X", "Message + MAC", message)
+	logging.Debugf("%18s %X", "Message + MAC", message)
 
-	requiredPadding = crypto.RC5_BLOCK_SIZE - (len(message) & crypto.RC5_BLOCK_SIZE) - 1
+	requiredPadding = crypto.RC5_BLOCK_SIZE - (len(message) % crypto.RC5_BLOCK_SIZE) - 1
 
 	// generate and append padding for message
 	padding = bytes.Repeat([]byte{0x00}, requiredPadding)
 	message = append(message, padding...)
 
-	logging.Infof("%18s %X", "Padded", message)
+	logging.Debugf("%18s %X", "Padded", message)
 
 	// append padding hint to message
 	message = append(message, uint8(requiredPadding))
 
-	logging.Infof("%18s %X", "Pre EncryptPacket", message)
+	logging.Debugf("%18s %X", "Pre EncryptPacket", message)
 
 	// encrypt using RC5 session key
 	message = crypto.EncryptPacket(message, s.EncRC5Key)
 
-	logging.Infof("%18s %X", "Post EncryptPacket", message)
+	logging.Debugf("%18s %X", "Post EncryptPacket", message)
 
 	*data = message
 

@@ -53,7 +53,7 @@ func handleEncryptedPacket(
 	encryptedResponse = &bitstream.BitStream{}
 
 	// prepend the encryption packet header
-	encodeHeaderEncrypted(encryptedResponse)
+	EncodeHeaderEncrypted(encryptedResponse)
 
 	// write encrypted packet to stream
 	encryptedResponse.WriteBytes(packet)
@@ -63,7 +63,7 @@ func handleEncryptedPacket(
 	return
 }
 
-func encodeHeaderEncrypted(stream *bitstream.BitStream) {
+func EncodeHeaderEncrypted(stream *bitstream.BitStream) {
 
 	packetHeader := packet.PacketHeader{
 		PacketType:   packet.PacketType_Normal,

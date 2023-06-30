@@ -5,8 +5,8 @@ import (
 
 	"goPSLoginServer/packet"
 	"goPSLoginServer/packet/loginPacket"
+	"goPSLoginServer/utils"
 	"goPSLoginServer/utils/bitstream"
-	"goPSLoginServer/utils/crypto"
 	"goPSLoginServer/utils/logging"
 	"goPSLoginServer/utils/session"
 )
@@ -102,7 +102,8 @@ func handleLoginMessage(
 	}
 
 	loginRespMessage = &loginPacket.LoginRespMessage{}
-	loginRespMessage.Token = crypto.GenerateToken()
+	// loginRespMessage.Token = crypto.GenerateToken()
+	loginRespMessage.Token = []uint8{'T', 'H', 'I', 'S', 'I', 'S', 'M', 'Y', 'T', 'O', 'K', 'E', 'N', 'Y', 'E', 'S'}
 	loginRespMessage.Unk0 = []uint8{
 		0x00,
 		0x00,
@@ -135,6 +136,41 @@ func handleLoginMessage(
 		err = fmt.Errorf("Failed to encode LoginRespMessage packet: %v", err)
 		return
 	}
+
+	logging.Infof("Login: %X", response.GetBuffer())
+
+	err = SendEncryptedPacket(response, sess)
+	if err != nil {
+		err = fmt.Errorf("Error sending LoginRespMessage: %v", err)
+		return
+	}
+
+	response.Clear()
+
+	worldInfo := make([]loginPacket.WorldInfo, 1)
+
+	worldInfo[0] = loginPacket.WorldInfo{
+		Name:        []uint8("Bluber Server"),
+		Status2:     loginPacket.WorldStatus_Up,
+		ServerType:  loginPacket.ServerType_Released,
+		Status1:     loginPacket.WorldStatus_Up,
+		Connections: nil,
+		EmpireNeed:  utils.Empire_NC,
+	}
+
+	worldMessage := loginPacket.VNLWorldStatusMessage{
+		DefaultPacket:  packet.DefaultPacket{},
+		WelcomeMessage: []uint8("ASDF"),
+		// Worlds:         worldInfo,
+	}
+
+	err = worldMessage.Encode(response)
+	if err != nil {
+		err = fmt.Errorf("Error encoding VNLWorldStatusMessage: %v", err)
+		return
+	}
+
+	logging.Infof("WorldInfo: %X", response.GetBuffer())
 
 	return
 }
