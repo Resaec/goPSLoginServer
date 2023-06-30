@@ -180,7 +180,7 @@ func DecryptPacket(data []uint8, key []uint8) (result []uint8) {
 		cipher.Decrypt(result[i:i+8], data[i:i+8])
 	}
 
-	result = fixRC5DecodePadding(result)
+	// result = fixRC5DecodePadding(result)
 
 	return
 }

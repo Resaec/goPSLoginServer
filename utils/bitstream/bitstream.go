@@ -9,6 +9,7 @@ import (
 )
 
 func Min[T constraints.Ordered](args ...T) T {
+
 	min := args[0]
 	for _, x := range args {
 		if x < min {
@@ -19,6 +20,7 @@ func Min[T constraints.Ordered](args ...T) T {
 }
 
 func Max[T constraints.Ordered](args ...T) T {
+
 	max := args[0]
 	for _, x := range args {
 		if x > max {
@@ -37,6 +39,7 @@ type BitStream struct {
 
 // NewBitStream creates a new BitStream object.
 func NewBitStream(existingBuf []uint8) *BitStream {
+
 	return &BitStream{
 		buffer:       existingBuf,
 		streamBitPos: 0,
@@ -56,6 +59,7 @@ func (bs *BitStream) GetSize() uint32 {
 
 // GetRemainingBits returns the number of unread bits after the stream pos.
 func (bs *BitStream) GetRemainingBits() uint64 {
+
 	sizeBits := bs.GetSizeBits()
 	if bs.streamBitPos >= sizeBits {
 		return 0
@@ -65,6 +69,7 @@ func (bs *BitStream) GetRemainingBits() uint64 {
 
 // GetRemainingBytes returns the number of COMPLETELY unread bytes after the stream pos.
 func (bs *BitStream) GetRemainingBytes() uint64 {
+
 	usedBytes := (bs.streamBitPos + 7) / 8
 	if usedBytes >= uint64(len(bs.buffer)) {
 		return 0
@@ -89,10 +94,12 @@ func (bs *BitStream) GetPos() uint64 {
 
 // SetPos sets the current stream pos.
 func (bs *BitStream) SetPos(pos uint64) {
+
 	if pos > uint64(len(bs.buffer)*8) {
 		bs.lastError = errors.New("INVALID_STREAM_POS")
 		return
 	}
+
 	bs.streamBitPos = pos
 }
 
@@ -100,11 +107,13 @@ func (bs *BitStream) SetPos(pos uint64) {
 // NOTICE: Buffers with UINT32_MAX bits are unlikely,
 // but they will result in the check failing because the singed integer will be negative
 func (bs *BitStream) DeltaPos(delta int32) {
+
 	newPos := int64(bs.streamBitPos) + int64(delta)
 	if newPos < 0 || newPos > int64(len(bs.buffer)*8) {
 		bs.lastError = errors.New("INVALID_STREAM_POS")
 		return
 	}
+
 	bs.streamBitPos = uint64(newPos)
 }
 
@@ -114,25 +123,32 @@ func (bs *BitStream) DeltaPosBytes(delta int32) {
 
 // AlignPos aligns the stream pos to the next highest byte boundary if necessary.
 func (bs *BitStream) AlignPos() {
+
 	bitsIn := bs.streamBitPos % 8
 	if bitsIn != 0 {
 		bs.DeltaPos(8 - int32(bitsIn))
 	}
 }
 
-// ReadBytes reads a number of bytes.
-func (bs *BitStream) ReadBytes(outBuf []uint8, numBytes uint64, peek bool) {
+// ReadBytes reads a number of bytes. Creates/Clobbers outBuf on size mismatch
+func (bs *BitStream) ReadBytes(outBuf *[]uint8, numBytes uint64, peek bool) {
 
 	if numBytes == 0 {
 		return
 	}
 
-	// If the stream position is not aligned on a byte boundary, need to do bit reading
+	// create buffer if needed, clobbers other data
+	if outBuf == nil || uint64(len(*outBuf)) != numBytes {
+		*outBuf = make([]uint8, numBytes)
+	}
+
+	// If the stream position is not aligned on a byte boundary, we need to do bit reading
 	if (bs.streamBitPos & 0x7) != 0 {
-		bs.ReadBits(outBuf, numBytes*8, peek)
+		bs.ReadBits(*outBuf, numBytes*8, peek)
 		return
 	}
 
+	// stream position is aligned, read bytes
 	remainingBytes := bs.GetRemainingBytes()
 	if remainingBytes < numBytes {
 		bs.lastError = errors.New("READ_TOO_MUCH")
@@ -140,7 +156,7 @@ func (bs *BitStream) ReadBytes(outBuf []uint8, numBytes uint64, peek bool) {
 	}
 
 	offset := bs.GetBytePos()
-	copy(outBuf, bs.buffer[offset:offset+numBytes])
+	copy(*outBuf, bs.buffer[offset:offset+numBytes])
 
 	if !peek {
 		bs.streamBitPos += numBytes * 8
@@ -149,12 +165,15 @@ func (bs *BitStream) ReadBytes(outBuf []uint8, numBytes uint64, peek bool) {
 
 // ReadBit reads a single bit as a bool
 func (bs *BitStream) ReadBit(outBuf *bool, peek bool) {
+
 	bit := make([]uint8, 1)
 	bs.ReadBits(bit, 1, peek)
+
 	*outBuf = bit[0] != 0
 }
 
 func (bs *BitStream) ReadBits(outBuf []byte, numBits uint64, peek bool) {
+
 	if numBits == 0 {
 		return
 	}
@@ -162,7 +181,7 @@ func (bs *BitStream) ReadBits(outBuf []byte, numBits uint64, peek bool) {
 	// If the stream position is aligned on a byte boundary and we are reading a quantity of bits divisible by 8,
 	// we can use faster byte reading
 	if (bs.streamBitPos&0x7) == 0 && (numBits&0x7) == 0 {
-		bs.ReadBytes(outBuf, uint64(numBits/8), peek)
+		bs.ReadBytes(&outBuf, uint64(numBits/8), peek)
 		return
 	}
 
@@ -304,6 +323,7 @@ func (bs *BitStream) WriteBits(data []uint8, numBits uint64) {
 
 // WriteBool writes a boolean value.
 func (bs *BitStream) WriteBool(value bool) {
+
 	if value {
 		bs.WriteBits([]uint8{1}, 1)
 	} else {
@@ -316,6 +336,7 @@ func (bs *BitStream) WriteUint8(value uint8) {
 }
 
 func (bs *BitStream) WriteUint16(value uint16) {
+
 	slices := make([]uint8, 2)
 	binary.LittleEndian.PutUint16(slices, value)
 
@@ -323,6 +344,7 @@ func (bs *BitStream) WriteUint16(value uint16) {
 }
 
 func (bs *BitStream) WriteUint32(value uint32) {
+
 	slices := make([]uint8, 4)
 	binary.LittleEndian.PutUint32(slices, value)
 
@@ -330,6 +352,7 @@ func (bs *BitStream) WriteUint32(value uint32) {
 }
 
 func (bs *BitStream) WriteUint64(value uint64) {
+
 	slices := make([]uint8, 8)
 	binary.LittleEndian.PutUint64(slices, value)
 
@@ -343,30 +366,40 @@ func (bs *BitStream) ReadAlign() {
 
 // ReadBool reads a boolean value.
 func (bs *BitStream) ReadBool(buffer *bool, peek bool) {
+
 	bs.ReadBit(buffer, peek)
 	return
 }
 
 func (bs *BitStream) ReadUint8(buffer *uint8, peek bool) {
 
-	res := make([]uint8, 1)
-	bs.ReadBytes(res, 1, peek)
+	var (
+		res []uint8
+	)
+
+	bs.ReadBytes(&res, 1, peek)
 
 	*buffer = res[0]
 }
 
 func (bs *BitStream) ReadUint16(buffer *uint16, peek bool) {
 
-	res := make([]uint8, 2)
-	bs.ReadBytes(res, 2, peek)
+	var (
+		res []uint8
+	)
+
+	bs.ReadBytes(&res, 2, peek)
 
 	*buffer = uint16(res[0]) | uint16(res[1])<<8
 }
 
 func (bs *BitStream) ReadUint32(buffer *uint32, peek bool) {
 
-	res := make([]uint8, 4)
-	bs.ReadBytes(res, 4, peek)
+	var (
+		res []uint8
+	)
+
+	bs.ReadBytes(&res, 4, peek)
 
 	*buffer = uint32(res[0])<<24 | uint32(res[1]<<16) | uint32(res[2]<<8) | uint32(res[3])
 
@@ -375,15 +408,61 @@ func (bs *BitStream) ReadUint32(buffer *uint32, peek bool) {
 
 func (bs *BitStream) ReadUint64(buffer *uint64, peek bool) {
 
-	res := make([]uint8, 8)
-	bs.ReadBytes(res, 8, peek)
+	var (
+		res []uint8
+	)
+
+	bs.ReadBytes(&res, 8, peek)
 
 	*buffer = binary.LittleEndian.Uint64(res)
 }
 
+func (bs *BitStream) ReadString(buffer *[]uint8, peek bool) {
+
+	var (
+		streamPosition = bs.GetBitPos()
+
+		strLen uint8
+	)
+
+	// get string size
+	bs.ReadUint8(&strLen, false)
+
+	if strLen&0x80 != 0 {
+		strLen &= 0x7F
+	} else {
+		strLen = strLen << 8
+	}
+
+	*buffer = make([]uint8, strLen)
+
+	// align to next byte
+	bs.AlignPos()
+
+	bs.ReadBytes(buffer, uint64(strLen), false)
+
+	if peek {
+		bs.SetBitPos(streamPosition)
+	}
+}
+
+func (bs *BitStream) WriteString(buffer []uint8) {
+
+	var (
+		strLen = len(buffer)
+	)
+
+	bs.WriteUint16(uint16(strLen))
+
+	// align to next byte
+	bs.AlignPos()
+
+	bs.WriteBytes(buffer)
+}
+
 // SetBitPos sets the current stream position in bits.
 func (bs *BitStream) SetBitPos(bitPos uint64) {
-	bs.streamBitPos = bitPos
+	bs.SetPos(bitPos)
 }
 
 // GetBitPos returns the current stream position in bits.
@@ -408,6 +487,7 @@ func (bs *BitStream) ResetError() {
 
 // ResetStream resets the bit stream to its initial state.
 func (bs *BitStream) ResetStream() {
+
 	bs.streamBitPos = 0
 	bs.lastError = nil
 }
@@ -430,13 +510,15 @@ func (bs *BitStream) GetBufferFromHead() (buffer []uint8) {
 }
 
 func (bs *BitStream) Clear() {
+
 	bs.buffer = []uint8{}
 	bs.streamBitPos = 0
 	bs.lastError = nil
 }
 
-func (bs *BitStream) String() {
-	fmt.Sprintf(
+func (bs *BitStream) String() string {
+
+	return fmt.Sprintf(
 		"Size: %d - StreamBitPos: %d - LastError: %v - Buffer: %X",
 		len(bs.buffer),
 		bs.streamBitPos,

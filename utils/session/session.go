@@ -2,7 +2,7 @@ package session
 
 import (
 	"bytes"
-	"crypto/rc4"
+	"fmt"
 	"math/big"
 	"math/rand"
 	"time"
@@ -49,8 +49,6 @@ type Session struct {
 	EncRC5Key []uint8
 
 	LastPokeMS uint
-
-	decRC4, encRC4 *rc4.Cipher
 }
 
 const (
@@ -63,10 +61,8 @@ const (
 
 func NewSession(clientEndpoint uint32) *Session {
 	return &Session{
-		ClientEndpoint:        clientEndpoint,
-		CryptoState:           CryptoState_Init,
-		StoredClientChallenge: make([]uint8, 12),
-		StoredServerChallenge: make([]uint8, 12),
+		ClientEndpoint: clientEndpoint,
+		CryptoState:    CryptoState_Init,
 	}
 }
 
@@ -75,8 +71,6 @@ func (s *Session) GenerateCrypto1(clientTime uint32, clientChallenge []uint8, p,
 
 	var (
 		err error
-
-		serverChallengeLen = len(s.StoredServerChallenge)
 	)
 
 	// prepare dhGroup with given (p)rime and (g)enerator
@@ -98,16 +92,8 @@ func (s *Session) GenerateCrypto1(clientTime uint32, clientChallenge []uint8, p,
 	// store server info
 	s.StoredServerTime = uint32(time.Now().Unix())
 
-	// generate server challenge
-	for i := 0; i < serverChallengeLen; i += 4 {
-
-		randValue := rand.Uint32()
-
-		s.StoredServerChallenge[i] = uint8(randValue)
-		s.StoredServerChallenge[i+1] = uint8((randValue >> 8) & 0xFF)
-		s.StoredServerChallenge[i+2] = uint8((randValue >> 16) & 0xFF)
-		s.StoredServerChallenge[i+3] = uint8((randValue >> 24) & 0xFF)
-	}
+	s.StoredServerChallenge = make([]uint8, 12)
+	_, _ = rand.Read(s.StoredServerChallenge)
 
 	s.CryptoState = CryptoState_Challenge
 }
@@ -241,11 +227,9 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	s.CryptoState = CryptoState_Finished
 }
 
-func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bool {
+func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (err error) {
 
 	var (
-		err error
-
 		paddingUsed      int
 		messageAndMacLen int
 
@@ -257,16 +241,16 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bo
 	)
 
 	if s.CryptoState != CryptoState_Finished {
-		logging.Errf("Tried to decrypt with unfinished crypto session! %v\n", s.ClientEndpoint)
-		return false
+		err = fmt.Errorf("Tried to decrypt with unfinished crypto session! %v\n", s.ClientEndpoint)
+		return
 	}
 
 	// get message from stream
 	data = stream.GetBufferFromHead()
 
 	if len(data) == 0 {
-		logging.Errln("DecryptPacket packet is empty")
-		return false
+		err = fmt.Errorf("DecryptPacket packet is empty")
+		return
 	}
 
 	logging.Infof("%18s %X", "Pre Decode", data)
@@ -289,8 +273,8 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bo
 
 	messageAndMacLen = len(data)
 	if messageAndMacLen < md5mac.MACLENGTH {
-		logging.Errf("DecryptPacket message not large enough for 16-Byte MAC: %d/16+\n", messageAndMacLen)
-		return false
+		err = fmt.Errorf("DecryptPacket message not large enough for 16-Byte MAC: %d/16+\n", messageAndMacLen)
+		return
 	}
 
 	// get MAC
@@ -305,8 +289,8 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bo
 
 	mac, err = md5mac.NewMD5MACWithKey(s.DecMACKey)
 	if err != nil {
-		logging.Errf("DecryptPacket: Could not make MAC object: %v\n", err)
-		return false
+		err = fmt.Errorf("DecryptPacket: Could not make MAC object: %v\n", err)
+		return
 	}
 
 	// generate MAC for received message
@@ -316,7 +300,7 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bo
 
 	// check MACs match
 	if slices.Compare(calculatedMac, messageMAC) != 0 {
-		logging.Errf(
+		err = fmt.Errorf(
 			"DecryptPacket: MAC missmatch\n"+
 				"Got: %v\n"+
 				"Exp: %s\n",
@@ -324,12 +308,12 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) bo
 			calculatedMac,
 		)
 
-		return false
+		return
 	}
 
 	*outBuf = data
 
-	return true
+	return
 }
 
 func (s *Session) EncryptPacket(data *[]uint8) bool {

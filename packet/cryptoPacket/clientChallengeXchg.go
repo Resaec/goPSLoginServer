@@ -28,22 +28,18 @@ type ClientChallengeXchg struct {
 
 func (p *ClientChallengeXchg) Decode(stream *bitstream.BitStream) (err error) {
 
-	p.Challenge = make([]uint8, 12)
-	p.P = make([]uint8, 16)
-	p.G = make([]uint8, 16)
-
 	stream.ReadUint8(&p.Unk0, false)
 	stream.ReadUint8(&p.Unk1, false)
 	stream.ReadUint32(&p.ClientTime, false)
-	stream.ReadBytes(p.Challenge, 12, false)
+	stream.ReadBytes(&p.Challenge, 12, false)
 	stream.ReadUint8(&p.UnkEndChallenge, false)
 	stream.ReadUint8(&p.UnkObjects0, false)
 	stream.ReadUint16(&p.UnkObjectType, false)
 	stream.ReadUint32(&p.Unk2, false)
 	stream.ReadUint16(&p.PLen, false)
-	stream.ReadBytes(p.P, 16, false)
+	stream.ReadBytes(&p.P, 16, false)
 	stream.ReadUint16(&p.GLen, false)
-	stream.ReadBytes(p.G, 16, false)
+	stream.ReadBytes(&p.G, 16, false)
 	stream.ReadUint8(&p.UnkEnd0, false)
 	stream.ReadUint8(&p.UnkEnd1, false)
 	stream.ReadUint8(&p.UnkObjects1, false)

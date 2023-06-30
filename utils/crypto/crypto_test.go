@@ -46,6 +46,10 @@ func TestRC5(t *testing.T) {
 				)
 
 				encrypted = EncryptPacket(c.input.message, c.input.key)
+
+				// endianness needs to switch before decode
+				encrypted = fixRC5ResultOrder(encrypted)
+
 				decrypted = DecryptPacket(encrypted, c.input.key)
 
 				if bytes.Equal(encrypted, c.input.message) {

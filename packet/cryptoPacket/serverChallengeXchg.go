@@ -37,19 +37,15 @@ func (p *ServerChallengeXchg) Encode(stream *bitstream.BitStream) (err error) {
 
 func (p *ServerChallengeXchg) Decode(stream *bitstream.BitStream) (err error) {
 
-	p.Challenge = make([]uint8, 12)
-	p.Unk2 = make([]uint8, 7)
-	p.PubKey = make([]uint8, 16)
-
 	stream.ReadUint8(&p.Unk0, false)
 	stream.ReadUint8(&p.Unk1, false)
 	stream.ReadUint32(&p.ServerTime, false)
-	stream.ReadBytes(p.Challenge, 12, false)
+	stream.ReadBytes(&p.Challenge, 12, false)
 	stream.ReadUint8(&p.UnkChallengeEnd, false)
 	stream.ReadUint8(&p.UnkObjects, false)
-	stream.ReadBytes(p.Unk2, 7, false)
+	stream.ReadBytes(&p.Unk2, 7, false)
 	stream.ReadUint16(&p.PubKeyLen, false)
-	stream.ReadBytes(p.PubKey, 16, false)
+	stream.ReadBytes(&p.PubKey, 16, false)
 	stream.ReadUint8(&p.Unk3, false)
 
 	return nil
