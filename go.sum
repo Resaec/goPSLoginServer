@@ -1,7 +1,9 @@
 github.com/Resaec/go-md5mac v0.0.0-20230628131326-75658997906d h1:QfMPCclSSrmAtcy3RzVJHQahzrMKRoxiCX6xDCQbt/o=
 github.com/Resaec/go-md5mac v0.0.0-20230628131326-75658997906d/go.mod h1:fPN3LdBo7w5DbedGOfbblnd2Ky1ym8YarH15//YH6sk=
-github.com/Resaec/go-rc5 v0.0.0-20230628144122-2ccc731f5d15 h1:FVqn7Ct9k0dwQh298tnKyoJ1yX+MU5W7s0kcbImrobc=
-github.com/Resaec/go-rc5 v0.0.0-20230628144122-2ccc731f5d15/go.mod h1:zUKz+y9rr5ULE9jlxalhb07JAgd8A4BR1ng4jjNuDiw=
+github.com/Resaec/go-rc5 v0.0.0-20230629220728-112dec842030 h1:KLAjisPG78yJ2jO46/7Mys1I3vTiRn/YcC6MWuiFnao=
+github.com/Resaec/go-rc5 v0.0.0-20230629220728-112dec842030/go.mod h1:4CAtQRBUVAPG8efTb9qIuZBxLGR7J8Mh/0afZBNr1oE=
+github.com/euphratesdata/go-bigmath v0.0.0-20170130043953-c75ff338001b h1:S0PjYTawc+AE+amxkkqqdgL5LPKNpyYCk1W9/TdXm8w=
+github.com/euphratesdata/go-bigmath v0.0.0-20170130043953-c75ff338001b/go.mod h1:YWjFvYcPIEeGcPwFUJdIUrQptfiQbWmFwYan0LvHk7M=
 github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 h1:UsjqpfLSsCM5SVN5OGhiWJnxDokyT74E6Ahj6kVZxh8=
 github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4/go.mod h1:/cxRiYq8L/bpGLJJJ7mN66Qv2nj915TfJdujDVyYVGA=
 golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df h1:UA2aFVmmsIlefxMk29Dp2juaUSth8Pyn3Tq5Y5mJGME=

@@ -2,13 +2,15 @@ package crypto
 
 import (
 	"bytes"
-	"crypto"
 	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/Resaec/go-md5mac"
-	"github.com/Resaec/go-rc5/rc5"
+	"github.com/Resaec/go-rc5"
+	"golang.org/x/exp/rand"
+
+	"goPSLoginServer/utils/logging"
 )
 
 const (
@@ -129,16 +131,26 @@ func padPacketForEncryption(data []uint8) (result []uint8) {
 
 func EncryptPacket(data []uint8, key []uint8) (result []uint8) {
 
-	result = make([]uint8, len(data))
-
-	block := rc5.NewRC532(
-		&rc5.RC5SimpleConfig{
-			Key:   key,
-			Round: 16,
-		},
+	var (
+		dataLen     = len(data)
+		cipher, err = rc5.NewCipher32(key, 16)
 	)
 
-	result = block.Encrypt(data)
+	if !IsValidRC5Buffer(data) {
+		err = errors.New("input is not a valid RC5 buffer")
+		return
+	}
+
+	if err != nil {
+		logging.Errf("Error creating encryption cipher: %v", err)
+		return
+	}
+
+	result = make([]uint8, dataLen)
+
+	for i := 0; i < dataLen; i += 8 {
+		cipher.Encrypt(result[i:i+8], data[i:i+8])
+	}
 
 	result = fixRC5ResultOrder(result)
 
@@ -148,21 +160,25 @@ func EncryptPacket(data []uint8, key []uint8) (result []uint8) {
 func DecryptPacket(data []uint8, key []uint8) (result []uint8) {
 
 	var (
-		dataLen = len(data)
+		dataLen     = len(data)
+		cipher, err = rc5.NewCipher32(key, 16)
 	)
+
+	if !IsValidRC5Buffer(data) {
+		err = errors.New("input is not a valid RC5 buffer")
+		return
+	}
+
+	if err != nil {
+		logging.Errf("Error creating decryption cipher: %v", err)
+		return
+	}
 
 	result = make([]uint8, dataLen)
 
-	block := rc5.NewRC532(
-		&rc5.RC5SimpleConfig{
-			Key:   key,
-			Round: 16,
-		},
-	)
-
-	data = fixRC5ResultOrder(data)
-
-	result = block.Decrypt(data)
+	for i := 0; i < dataLen; i += 8 {
+		cipher.Decrypt(result[i:i+8], data[i:i+8])
+	}
 
 	result = fixRC5DecodePadding(result)
 
@@ -182,40 +198,10 @@ func IsValidRC5Buffer(buffer []byte) bool {
 	return true
 }
 
-func DecryptRC5(decryptor crypto.Decrypter, buffer []byte) (output []byte, err error) {
+func GenerateToken() (token []uint8) {
 
-	if !IsValidRC5Buffer(buffer) {
-		err = errors.New("input is not a valid RC5 buffer")
-		return
-	}
-
-	for j := 0; j < len(buffer); j += RC5_BLOCK_SIZE {
-
-		output, err = decryptor.Decrypt(nil, buffer[j:j+RC5_BLOCK_SIZE], nil)
-		if err != nil {
-			err = errors.New(fmt.Sprintf("error decrypting: %v", err))
-			return
-		}
-	}
-
-	return
-}
-
-func EncryptRC5(encryptor crypto.PrivateKey, buffer []byte) (output []byte, err error) {
-
-	if !IsValidRC5Buffer(buffer) {
-		err = errors.New("input is not a valid RC5 buffer")
-		return
-	}
-
-	for j := 0; j < len(buffer); j += RC5_BLOCK_SIZE {
-
-		// output, err = encryptor(nil, buffer[j:j+RC5_BLOCK_SIZE], nil)
-		if err != nil {
-			err = errors.New(fmt.Sprintf("error decrypting: %v", err))
-			return
-		}
-	}
+	token = make([]uint8, 32)
+	_, _ = rand.Read(token)
 
 	return
 }
