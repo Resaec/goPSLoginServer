@@ -152,7 +152,7 @@ func EncryptPacket(data []uint8, key []uint8) (result []uint8) {
 		cipher.Encrypt(result[i:i+8], data[i:i+8])
 	}
 
-	result = fixRC5ResultOrder(result)
+	// result = fixRC5ResultOrder(result)
 
 	return
 }
