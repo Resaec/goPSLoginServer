@@ -34,13 +34,16 @@ func handleControlPacket(
 
 	case packet.CPOpcode_TeardownConnection:
 		{
-			// TODO: kill session?
 			logging.Infoln("Received TeardownConnection")
+
+			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	case packet.CPOpcode_ConnectionClose:
 		{
 			logging.Infoln("Received ConnectionClose")
+
+			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	default:

@@ -48,3 +48,12 @@ func (sh *sessionHandler) GetOrCreateSession(clientEndpoint *net.UDPAddr, isClie
 
 	return newSession
 }
+
+func (sh *sessionHandler) RemoveSession(sess *Session) {
+
+	var (
+		hash = binary.LittleEndian.Uint32(sess.ClientEndpoint.IP)
+	)
+
+	delete(sh.sessions, hash)
+}
