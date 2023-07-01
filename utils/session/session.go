@@ -226,7 +226,7 @@ func (s *Session) GenerateCrypto2(clientPubKey []uint8, clientChallengeResult []
 	// MAC buffer no longer needed
 	s.MacBuffer = nil
 
-	s.CryptoState = CryptoState_Finished
+	s.CryptoStateSwitch = CryptoState_Finished
 }
 
 func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (err error) {
@@ -301,11 +301,11 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	logging.Debugf("%18s %X", "Calculated MAC", calculatedMac)
 
 	// check MACs match
-	if slices.Compare(calculatedMac, messageMAC) != 0 {
+	if !slices.Equal(calculatedMac, messageMAC) {
 		err = fmt.Errorf(
 			"DecryptPacket: MAC missmatch\n"+
 				"Got: %v\n"+
-				"Exp: %s\n",
+				"Exp: %v\n",
 			messageMAC,
 			calculatedMac,
 		)

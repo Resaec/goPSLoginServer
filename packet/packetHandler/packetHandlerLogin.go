@@ -122,9 +122,9 @@ func handleLoginMessage(
 		0x00,
 		0x00,
 	}
-	loginRespMessage.Error = 0
-	loginRespMessage.StationError = 1
-	loginRespMessage.SubscriptionStatus = 2
+	loginRespMessage.Error = loginPacket.LoginError_Success
+	loginRespMessage.StationError = loginPacket.StationError_AccountActive
+	loginRespMessage.SubscriptionStatus = loginPacket.StationSubscriptionStatus_Active
 	loginRespMessage.Unk1 = 685276011
 	loginRespMessage.Username = loginMessage.Username
 	loginRespMessage.Privilege = 10001
@@ -137,7 +137,7 @@ func handleLoginMessage(
 		return
 	}
 
-	logging.Infof("Login: %X", response.GetBuffer())
+	logging.Debugf("Login: %X", response.GetBuffer())
 
 	PreparePacketForSending(response, sess)
 	err = SendPacket(response, sess)
@@ -171,7 +171,15 @@ func handleLoginMessage(
 		return
 	}
 
-	logging.Infof("WorldInfo: %X", response.GetBuffer())
+	logging.Debugf("WorldInfo: %X", response.GetBuffer())
+
+	PreparePacketForSending(response, sess)
+	err = SendPacket(response, sess)
+	if err != nil {
+		logging.Errf("BLUBBB")
+	}
+
+	response.Clear()
 
 	return
 }

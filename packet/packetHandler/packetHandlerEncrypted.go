@@ -16,9 +16,6 @@ func handleEncryptedPacket(
 	var (
 		decodedMessage []uint8
 		decodedStream  *bitstream.BitStream
-
-		packet            []uint8
-		encryptedResponse *bitstream.BitStream
 	)
 
 	err = sess.DecryptPacket(stream, &decodedMessage)
@@ -41,24 +38,6 @@ func handleEncryptedPacket(
 	if response == nil {
 		return
 	}
-
-	// response needs to be encrypted
-
-	// get unencrypted packet from stream
-	packet = response.GetBuffer()
-
-	// encrypt packet
-	sess.EncryptPacket(&packet)
-
-	encryptedResponse = &bitstream.BitStream{}
-
-	// prepend the encryption packet header
-	EncodeHeaderEncrypted(encryptedResponse)
-
-	// write encrypted packet to stream
-	encryptedResponse.WriteBytes(packet)
-
-	response = encryptedResponse
 
 	return
 }

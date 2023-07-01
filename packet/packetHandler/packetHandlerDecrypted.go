@@ -71,7 +71,7 @@ func handleDecryptedControlPacket(
 
 	default:
 		{
-			stream.DeltaPosBytes(-1)
+			stream.DeltaPosBytes(-2)
 			return handleControlPacket(stream, sess)
 
 			return nil, fmt.Errorf(packet.PACKET_OPCODE_NOT_IMPLEMENTED_NORMAL_CONTROL, opcode)
@@ -113,8 +113,6 @@ func handleControlSync(
 		err = fmt.Errorf("Failed to encode ControlSyncResp packet: %v", err)
 		return
 	}
-
-	time.Sleep(time.Millisecond * 500)
 
 	return
 }
@@ -159,7 +157,7 @@ func handleSlottedMetaPacket(
 		return
 	}
 
-	logging.Infof("Inner: %X", slottedMetaPacket.Rest)
+	logging.Debugf("Inner: %X", slottedMetaPacket.Rest)
 
 	// write packet from slotted to stream
 	stream = bitstream.NewBitStream(slottedMetaPacket.Rest)

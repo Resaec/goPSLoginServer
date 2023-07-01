@@ -6,17 +6,18 @@ import (
 )
 
 const (
-	WorldStatus_Up = iota
-	WorldStatus_Down
-	WorldStatus_Locked
-	WorldStatus_Full
+	WorldStatus_Up     = iota //
+	WorldStatus_Down          //
+	WorldStatus_Locked        //
+	WorldStatus_Full          //
 )
 
 const (
-	ServerType_Unknown = iota
-	ServerType_Development
-	ServerType_Beta
-	ServerType_Released
+	ServerType_Unknown        = iota //
+	ServerType_Development           //
+	ServerType_Beta                  //
+	ServerType_Released              //
+	ServerType_ReleasedGemini        //
 )
 
 type WorldConnectionInfo struct {

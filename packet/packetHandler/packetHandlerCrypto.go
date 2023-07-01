@@ -99,9 +99,6 @@ func handleCryptoInit(
 
 	response = &bitstream.BitStream{}
 
-	// write crypto header
-	encodeHeaderCrypto(response)
-
 	// write packet
 	err = serverChallengeXchg.Encode(response)
 	if err != nil {
@@ -109,8 +106,7 @@ func handleCryptoInit(
 		return
 	}
 
-	// +3 to skip crypto header
-	sess.MacBuffer = append(sess.MacBuffer, response.GetBufferFromByte(3)...)
+	sess.MacBuffer = append(sess.MacBuffer, response.GetBuffer()...)
 
 	return
 }
@@ -142,8 +138,6 @@ func handleCryptoChallenge(
 	}
 
 	response = &bitstream.BitStream{}
-
-	encodeHeaderCrypto(response)
 
 	err = serverFinished.Encode(response)
 	if err != nil {

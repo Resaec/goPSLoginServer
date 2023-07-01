@@ -5,6 +5,36 @@ import (
 	"goPSLoginServer/utils/bitstream"
 )
 
+// LoginError
+const (
+	LoginError_Success               = iota //
+	LoginError_unk1                         //
+	LoginError_unk2                         //
+	LoginError_unk3                         //
+	LoginError_unk4                         //
+	LoginError_BadUsernameOrPassword        // "Invalid Username or Password"
+
+	BadVersion = 15 //
+)
+
+// StationError
+const (
+	StationError_Unk0          = iota //
+	StationError_AccountActive        //
+	StationError_AccountClosed        // "Your Station account is currently closed"
+)
+
+// StationSubscriptionStatus
+const (
+	StationSubscriptionStatus_unk0         = iota //
+	StationSubscriptionStatus_None                // "You do not have a PlanetSide subscription"
+	StationSubscriptionStatus_Active              // / Not sure about this one (guessing) (no ingame error message)
+	StationSubscriptionStatus_unk3                //
+	StationSubscriptionStatus_Closed              // "Your PlanetSide subscription is currently closed"
+	StationSubscriptionStatus_Trial               // / Not sure about this one either (no ingame error message)
+	StationSubscriptionStatus_TrialExpired        // "Your trial PlanetSide subscription has expired"
+)
+
 type LoginRespMessage struct {
 	packet.DefaultPacket
 	Token              []uint8 // 16

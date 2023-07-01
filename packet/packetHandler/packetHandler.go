@@ -30,39 +30,6 @@ func HandlePacket(
 	return
 }
 
-func SendEncryptedPacket(stream *bitstream.BitStream, sess *session.Session) (err error) {
-
-	var (
-		packet []uint8
-
-		encryptedStream *bitstream.BitStream
-	)
-
-	// get unencrypted packet from stream
-	packet = stream.GetBuffer()
-
-	logging.Infof("Pre Encrypt: %X", packet)
-
-	// encrypt packet
-	sess.EncryptPacket(&packet)
-
-	encryptedStream = &bitstream.BitStream{}
-
-	// prepend the encryption packet header
-	EncodeHeaderEncrypted(encryptedStream)
-
-	// write encrypted packet to stream
-	encryptedStream.WriteBytes(packet)
-
-	err = SendPacket(encryptedStream, sess)
-	if err != nil {
-		err = fmt.Errorf("Error sending encrypted packet: %v", err)
-		return
-	}
-
-	return
-}
-
 func SendPacket(stream *bitstream.BitStream, sess *session.Session) (err error) {
 
 	var (
@@ -108,8 +75,6 @@ func SendPacket(stream *bitstream.BitStream, sess *session.Session) (err error) 
 		false,
 	)
 
-	fmt.Println()
-
 	return
 }
 
@@ -122,7 +87,7 @@ func PreparePacketForSending(stream *bitstream.BitStream, sess *session.Session)
 	// crypto is finished, all packets need to be encrypted and have the encrypted header
 	if sess.CryptoState == session.CryptoState_Finished {
 
-		logging.Infoln("Encrypted packet")
+		logging.Debugln("Encrypted packet")
 
 		sess.EncryptPacket(&packet)
 
@@ -136,16 +101,16 @@ func PreparePacketForSending(stream *bitstream.BitStream, sess *session.Session)
 	// crypto is in challenge, all packets need to have the challenge header
 	if sess.CryptoState == session.CryptoState_Challenge {
 
-		logging.Infoln("Crypto packet")
-		//
-		// stream.Clear()
-		// encodeHeaderCrypto(stream)
-		//
-		// stream.WriteBytes(packet)
+		logging.Debugln("Crypto packet")
+
+		stream.Clear()
+		encodeHeaderCrypto(stream)
+
+		stream.WriteBytes(packet)
 	}
 
 	if sess.CryptoState == session.CryptoState_Init {
-		logging.Infoln("Init packet")
+		logging.Debugln("Init packet")
 	}
 
 	// nothing to do for CryptoState_Init
