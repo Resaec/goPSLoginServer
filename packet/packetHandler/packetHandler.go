@@ -112,3 +112,47 @@ func SendPacket(stream *bitstream.BitStream, sess *session.Session) (err error) 
 
 	return
 }
+
+func PreparePacketForSending(stream *bitstream.BitStream, sess *session.Session) {
+
+	var (
+		packet = stream.GetBuffer()
+	)
+
+	// crypto is finished, all packets need to be encrypted and have the encrypted header
+	if sess.CryptoState == session.CryptoState_Finished {
+
+		logging.Infoln("Encrypted packet")
+
+		sess.EncryptPacket(&packet)
+
+		stream.Clear()
+		EncodeHeaderEncrypted(stream)
+
+		stream.WriteBytes(packet)
+
+	}
+
+	// crypto is in challenge, all packets need to have the challenge header
+	if sess.CryptoState == session.CryptoState_Challenge {
+
+		logging.Infoln("Crypto packet")
+		//
+		// stream.Clear()
+		// encodeHeaderCrypto(stream)
+		//
+		// stream.WriteBytes(packet)
+	}
+
+	if sess.CryptoState == session.CryptoState_Init {
+		logging.Infoln("Init packet")
+	}
+
+	// nothing to do for CryptoState_Init
+
+	// update CryptoState for next packet
+	if sess.CryptoStateSwitch != session.CryptoState_Init {
+		sess.CryptoState = sess.CryptoStateSwitch
+		sess.CryptoStateSwitch = 0
+	}
+}

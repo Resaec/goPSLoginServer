@@ -93,6 +93,7 @@ func HandleLogin(port int32) {
 			continue
 		}
 
+		// packetHandler.PreparePacketForSending(response, sess)
 		err = packetHandler.SendPacket(response, sess)
 		if err != nil {
 			logging.Errf("Error sending packet: %v", err)

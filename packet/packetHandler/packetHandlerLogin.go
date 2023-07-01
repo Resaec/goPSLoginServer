@@ -139,7 +139,8 @@ func handleLoginMessage(
 
 	logging.Infof("Login: %X", response.GetBuffer())
 
-	err = SendEncryptedPacket(response, sess)
+	PreparePacketForSending(response, sess)
+	err = SendPacket(response, sess)
 	if err != nil {
 		err = fmt.Errorf("Error sending LoginRespMessage: %v", err)
 		return
@@ -161,7 +162,7 @@ func handleLoginMessage(
 	worldMessage := loginPacket.VNLWorldStatusMessage{
 		DefaultPacket:  packet.DefaultPacket{},
 		WelcomeMessage: []uint8("ASDF"),
-		// Worlds:         worldInfo,
+		Worlds:         worldInfo,
 	}
 
 	err = worldMessage.Encode(response)

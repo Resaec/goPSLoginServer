@@ -152,7 +152,8 @@ func handleSlottedMetaPacket(
 	}
 
 	// send Ack to SlottedMetaPacket
-	err = SendEncryptedPacket(response, sess)
+	PreparePacketForSending(response, sess)
+	err = SendPacket(response, sess)
 	if err != nil {
 		err = fmt.Errorf("Error sending SlottedMetaAck packet: %v", err)
 		return

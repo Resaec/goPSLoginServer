@@ -27,7 +27,8 @@ const (
 type Session struct {
 	ClientEndpoint *net.UDPAddr
 
-	CryptoState int
+	CryptoState       int
+	CryptoStateSwitch int
 
 	MacBuffer []uint8
 
@@ -242,7 +243,7 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	)
 
 	if s.CryptoState != CryptoState_Finished {
-		err = fmt.Errorf("Tried to decrypt with unfinished crypto session! %v\n", s.ClientEndpoint)
+		err = fmt.Errorf("Tried to decrypt with unfinished crypto session! %v", s.ClientEndpoint)
 		return
 	}
 
