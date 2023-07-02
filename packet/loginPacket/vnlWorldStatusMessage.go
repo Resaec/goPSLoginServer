@@ -22,13 +22,13 @@ const (
 
 type WorldConnectionInfo struct {
 	Ip   []uint8 // 4
-	Port uint8
+	Port uint16
 }
 
 func (ci *WorldConnectionInfo) Encode(stream *bitstream.BitStream) {
 
 	stream.WriteBytes(ci.Ip)
-	stream.WriteUint8(ci.Port)
+	stream.WriteUint16(ci.Port)
 
 }
 

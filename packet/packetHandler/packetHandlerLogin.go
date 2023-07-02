@@ -7,6 +7,7 @@ import (
 	"goPSLoginServer/packet/loginPacket"
 	"goPSLoginServer/utils"
 	"goPSLoginServer/utils/bitstream"
+	"goPSLoginServer/utils/crypto"
 	"goPSLoginServer/utils/logging"
 	"goPSLoginServer/utils/session"
 )
@@ -35,26 +36,26 @@ func handleLoginPacket(
 			return handleLoginMessage(stream, sess)
 		}
 
-	// case packet.GamePacketOpcode_LoginRespMessage:
-	// 	{
-	//
-	// 	}
-	// case packet.GamePacketOpcode_ConnectToWorldRequestMessage:
-	// 	{
-	//
-	// 	}
+	case packet.GamePacketOpcode_ConnectToWorldRequestMessage:
+		{
+			return handleConnectToWorldRequestMessage(stream, sess)
+		}
+
 	// case packet.GamePacketOpcode_ConnectToWorldMessage:
 	// 	{
 	//
 	// 	}
+
 	// case packet.GamePacketOpcode_VNLWorldStatusMessage:
 	// 	{
 	//
 	// 	}
+
 	// case packet.GamePacketOpcode_UnknownMessage6:
 	// 	{
 	//
 	// 	}
+
 	// case packet.GamePacketOpcode_UnknownMessage7:
 	// 	{
 	//
@@ -66,6 +67,8 @@ func handleLoginPacket(
 		}
 
 	}
+
+	return
 }
 
 func handleLoginMessage(
@@ -102,8 +105,7 @@ func handleLoginMessage(
 	}
 
 	loginRespMessage = &loginPacket.LoginRespMessage{}
-	// loginRespMessage.Token = crypto.GenerateToken()
-	loginRespMessage.Token = []uint8{'T', 'H', 'I', 'S', 'I', 'S', 'M', 'Y', 'T', 'O', 'K', 'E', 'N', 'Y', 'E', 'S'}
+	loginRespMessage.Token = crypto.GenerateToken()
 	loginRespMessage.Unk0 = []uint8{
 		0x00,
 		0x00,
@@ -125,7 +127,7 @@ func handleLoginMessage(
 	loginRespMessage.Error = loginPacket.LoginError_Success
 	loginRespMessage.StationError = loginPacket.StationError_AccountActive
 	loginRespMessage.SubscriptionStatus = loginPacket.StationSubscriptionStatus_Active
-	loginRespMessage.Unk1 = 685276011
+	loginRespMessage.Unk1 = 0
 	loginRespMessage.Username = loginMessage.Username
 	loginRespMessage.Privilege = 10001
 
@@ -147,6 +149,13 @@ func handleLoginMessage(
 	}
 
 	response.Clear()
+
+	// worldConnectionInfo := make([]loginPacket.WorldConnectionInfo, 1)
+	//
+	// worldConnectionInfo[0] = loginPacket.WorldConnectionInfo{
+	// 	Ip:   []uint8{127, 0, 0, 1},
+	// 	Port: uint16(99),
+	// }
 
 	worldInfo := make([]loginPacket.WorldInfo, 1)
 
@@ -180,6 +189,41 @@ func handleLoginMessage(
 	}
 
 	response.Clear()
+
+	return
+}
+
+func handleConnectToWorldRequestMessage(
+	stream *bitstream.BitStream,
+	sess *session.Session,
+) (response *bitstream.BitStream, err error) {
+
+	var (
+		connectToWorldRequestMessage loginPacket.ConnectToWorldRequestMessage
+		connectToWorldMessage        *loginPacket.ConnectToWorldMessage
+	)
+
+	logging.Infoln("Handling ConnectToWorldRequestMessage")
+
+	err = connectToWorldRequestMessage.Decode(stream)
+	if err != nil {
+		err = fmt.Errorf("Error decoding ConnectToWorldRequestMessage packet: %v", err)
+		return
+	}
+
+	connectToWorldMessage = &loginPacket.ConnectToWorldMessage{
+		ServerName:    []uint8("PSForever"),
+		ServerAddress: []uint8("127.0.0.1"),
+		ServerPort:    uint16(51001),
+	}
+
+	response = &bitstream.BitStream{}
+
+	err = connectToWorldMessage.Encode(response)
+	if err != nil {
+		err = fmt.Errorf("Error encoding VNLWorldStatusMessage: %v", err)
+		return
+	}
 
 	return
 }
