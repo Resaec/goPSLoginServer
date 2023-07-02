@@ -301,7 +301,7 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 	logging.Debugf("%18s %X", "Calculated MAC", calculatedMac)
 
 	// check MACs match
-	if !slices.Equal(calculatedMac, messageMAC) {
+	if !slices.Equal(calculatedMac[1:], messageMAC[1:]) {
 		err = fmt.Errorf(
 			"DecryptPacket: MAC missmatch\n"+
 				"Got: %v\n"+
@@ -311,6 +311,10 @@ func (s *Session) DecryptPacket(stream *bitstream.BitStream, outBuf *[]uint8) (e
 		)
 
 		return
+	}
+
+	if calculatedMac[0] != messageMAC[0] {
+		logging.Warnf("Got Packet with first MAC byte not matching")
 	}
 
 	*outBuf = data
