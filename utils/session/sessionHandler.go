@@ -1,8 +1,11 @@
 package session
 
 import (
-	"encoding/binary"
+	"fmt"
+	"hash/fnv"
 	"net"
+
+	"goPSLoginServer/utils/logging"
 )
 
 type sessionHandler struct {
@@ -12,10 +15,13 @@ type sessionHandler struct {
 var instance *sessionHandler
 
 func GetSessionHandler() *sessionHandler {
-	if instance == nil {
-		instance = &sessionHandler{
-			sessions: make(map[uint32]*Session),
-		}
+
+	if instance != nil {
+		return instance
+	}
+
+	instance = &sessionHandler{
+		sessions: make(map[uint32]*Session),
 	}
 
 	return instance
@@ -26,7 +32,7 @@ func (sh *sessionHandler) GetOrCreateSession(clientEndpoint *net.UDPAddr, isClie
 	var (
 		newSession *Session
 
-		hash        = binary.LittleEndian.Uint32(clientEndpoint.IP)
+		hash        = sh.getSessionHashForEndpoint(clientEndpoint)
 		session, ok = sh.sessions[hash]
 	)
 
@@ -52,8 +58,29 @@ func (sh *sessionHandler) GetOrCreateSession(clientEndpoint *net.UDPAddr, isClie
 func (sh *sessionHandler) RemoveSession(sess *Session) {
 
 	var (
-		hash = binary.LittleEndian.Uint32(sess.ClientEndpoint.IP)
+		hash = sh.getSessionHashForEndpoint(sess.ClientEndpoint)
 	)
 
 	delete(sh.sessions, hash)
+}
+
+func (sh *sessionHandler) getSessionHashForEndpoint(clientEndpoint *net.UDPAddr) (hash uint32) {
+
+	var (
+		err error
+
+		hasher = fnv.New32a() // should be fiiinnneee
+
+		key = fmt.Sprintf("%s:%d", clientEndpoint.IP, clientEndpoint.Port)
+	)
+
+	_, err = hasher.Write([]byte(key))
+	if err != nil {
+		logging.Errf("Failed to hash client endpoint: %v", err)
+		return
+	}
+
+	hash = hasher.Sum32()
+
+	return
 }
