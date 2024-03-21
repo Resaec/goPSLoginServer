@@ -6,26 +6,40 @@ import (
 	"goPSLoginServer/packet/packetHandler"
 	"goPSLoginServer/utils"
 	"goPSLoginServer/utils/bitstream"
+	"goPSLoginServer/utils/config"
 	"goPSLoginServer/utils/connection"
 	"goPSLoginServer/utils/logging"
 	"goPSLoginServer/utils/session"
 )
 
-func HandleLogin(port int32) {
+func HandleLogin() {
 
 	var (
 		err error
 
+		loginServerConfig = config.GetInstance().LoginServer
+
 		sess *session.Session
 	)
 
-	utils.LoginUDPSocket, err = connection.NewSocket("", port, connection.SocketType_UDP)
+	// notify the main routine once the LoginServer is gone
+	defer utils.GlobalWaitGroup.Done()
+
+	// open the UDP socket for the LoginServer
+	utils.LoginUDPSocket, err = connection.NewSocket(
+		loginServerConfig.IP,
+		loginServerConfig.Port,
+		connection.SocketType_UDP,
+	)
 	if err != nil {
 		logging.Errf("Error creating new socket: %v", err)
 		return
 	}
 	defer utils.LoginUDPSocket.CloseSocket()
 
+	logging.Infof("Opened socket on %s:%d", loginServerConfig.IP, loginServerConfig.Port)
+
+	// handle incoming connections indefinitely
 	for {
 
 		var (
@@ -100,6 +114,4 @@ func HandleLogin(port int32) {
 			continue
 		}
 	}
-
-	utils.GlobalWaitGroup.Done()
 }
