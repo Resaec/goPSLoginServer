@@ -27,7 +27,7 @@ func handleNonControlPacket(
 	}
 
 	if packetHeader.Secured {
-		logging.Debugf("Received secured packet from %v", sess.ClientEndpoint)
+		logging.Verbosef("Received secured packet from %v", sess.ClientEndpoint)
 		stream.DeltaPosBytes(1)
 	}
 

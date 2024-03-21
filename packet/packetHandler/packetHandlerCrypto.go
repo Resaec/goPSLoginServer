@@ -69,7 +69,7 @@ func handleCryptoInit(
 		clientChallengeXchg cryptoPacket.ClientChallengeXchg
 	)
 
-	logging.Infoln("Handling CryptoState_Init")
+	logging.Debugln("Handling CryptoState_Init")
 
 	sess.MacBuffer = append(sess.MacBuffer, stream.GetBufferFromHead()...)
 
@@ -120,7 +120,7 @@ func handleCryptoChallenge(
 		clientFinished cryptoPacket.ClientFinished
 	)
 
-	logging.Infoln("Handling CryptoState_Challenge")
+	logging.Debugln("Handling CryptoState_Challenge")
 
 	sess.MacBuffer = append(sess.MacBuffer, stream.GetBufferFromHead()...)
 

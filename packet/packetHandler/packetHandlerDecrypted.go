@@ -90,7 +90,7 @@ func handleControlSync(
 		controlSyncResp *controlPacket.ControlSyncResp
 	)
 
-	logging.Infoln("Handling ControlSync")
+	logging.Debugln("Handling ControlSync")
 
 	err = controlSync.Decode(stream)
 	if err != nil {
@@ -127,7 +127,7 @@ func handleSlottedMetaPacket(
 		slottedMetaAck    *controlPacket.SlottedMetaAck
 	)
 
-	logging.Infoln("Handling SlottedMetaPacket")
+	logging.Debugln("Handling SlottedMetaPacket")
 
 	err = slottedMetaPacket.Decode(stream)
 	if err != nil {
@@ -157,7 +157,7 @@ func handleSlottedMetaPacket(
 		return
 	}
 
-	logging.Debugf("Inner: %X", slottedMetaPacket.Rest)
+	logging.Tracef("Inner: %X", slottedMetaPacket.Rest)
 
 	// write packet from slotted to stream
 	stream = bitstream.NewBitStream(slottedMetaPacket.Rest)

@@ -58,7 +58,10 @@ func HandleLogin() {
 			stream *bitstream.BitStream
 		)
 
+		// blocking until new data is received
 		buffer, readCount, readAddressInterface, err = utils.LoginUDPSocket.ReadFromSocket()
+
+		// the following part in whole might need to go into a go routine to allow parallel client interaction
 		readAddress = (readAddressInterface).(*net.UDPAddr)
 
 		stream = bitstream.NewBitStream(buffer[:readCount])
@@ -81,7 +84,7 @@ func HandleLogin() {
 
 		// check for invalid packet
 		if sess == nil {
-			logging.Errf("Dropping packet for client %v because it arrived out of session!", readAddress.IP)
+			logging.Errf("Dropping packet for client %s because it arrived out of session!", readAddress)
 			continue
 		}
 

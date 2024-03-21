@@ -82,7 +82,7 @@ func handleLoginMessage(
 		loginRespMessage *loginPacket.LoginRespMessage
 	)
 
-	logging.Infoln("Handling LoginMessage")
+	logging.Debugln("Handling LoginMessage")
 
 	err = loginMessage.Decode(stream)
 	if err != nil {
@@ -91,18 +91,14 @@ func handleLoginMessage(
 	}
 
 	logging.Infof(
-		"Login from user with v%d.%d build on %s revision %d",
+		"Login from %s @ %s. Client v%d.%d build on %s revision %d",
+		loginMessage.Username,
+		sess.ClientEndpoint,
 		loginMessage.MajorVersion,
 		loginMessage.MinorVersion,
 		loginMessage.BuildDate,
 		loginMessage.Revision,
 	)
-
-	if loginMessage.CredentialsType == loginPacket.LOGIN_MESSAGE_CREDENTIAL_PASSWORD {
-		logging.Infof("Username: %s Password: %s", loginMessage.Username, loginMessage.Password)
-	} else {
-		logging.Infof("Username: %s Token: %s", loginMessage.Username, loginMessage.Token)
-	}
 
 	loginRespMessage = &loginPacket.LoginRespMessage{}
 	loginRespMessage.Token = crypto.GenerateToken()
@@ -139,7 +135,7 @@ func handleLoginMessage(
 		return
 	}
 
-	logging.Debugf("Login: %X", response.GetBuffer())
+	logging.Tracef("Login: %X", response.GetBuffer())
 
 	PreparePacketForSending(response, sess)
 	err = SendPacket(response, sess)
@@ -180,7 +176,7 @@ func handleLoginMessage(
 		return
 	}
 
-	logging.Debugf("WorldInfo: %X", response.GetBuffer())
+	logging.Tracef("WorldInfo: %X", response.GetBuffer())
 
 	PreparePacketForSending(response, sess)
 	err = SendPacket(response, sess)
@@ -203,7 +199,7 @@ func handleConnectToWorldRequestMessage(
 		connectToWorldMessage        *loginPacket.ConnectToWorldMessage
 	)
 
-	logging.Infoln("Handling ConnectToWorldRequestMessage")
+	logging.Debugln("Handling ConnectToWorldRequestMessage")
 
 	err = connectToWorldRequestMessage.Decode(stream)
 	if err != nil {

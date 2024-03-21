@@ -63,7 +63,7 @@ func handleClientStart(stream *bitstream.BitStream) (response *bitstream.BitStre
 		clientStart controlPacket.ClientStart
 	)
 
-	logging.Infoln("Handling ClientStart")
+	logging.Debugln("Handling ClientStart")
 
 	err = clientStart.Decode(stream)
 	if err != nil {
