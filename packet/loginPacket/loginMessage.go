@@ -11,7 +11,7 @@ const (
 )
 
 type LoginMessage struct {
-	packet.DefaultPacket
+	packet.Base
 	MajorVersion    uint32
 	MinorVersion    uint32
 	BuildDate       []uint8 // string

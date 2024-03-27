@@ -7,7 +7,7 @@ import (
 )
 
 type SlottedMetaPacket struct {
-	packet.DefaultPacket
+	packet.Base
 	Slot    uint8
 	Subslot uint16
 	Rest    []uint8

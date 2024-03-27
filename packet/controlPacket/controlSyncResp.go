@@ -6,7 +6,7 @@ import (
 )
 
 type ControlSyncResp struct {
-	packet.DefaultPacket
+	packet.Base
 	TimeDiff   uint16
 	ServerTick uint32
 	Field1     uint64
@@ -33,5 +33,5 @@ func (p *ControlSyncResp) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteUint64(p.Field3)
 	stream.WriteUint64(p.Field4)
 
-	return nil
+	return stream.GetLastError()
 }

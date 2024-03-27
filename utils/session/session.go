@@ -36,9 +36,11 @@ type Session struct {
 
 	StoredClientTime      uint32
 	StoredClientChallenge []uint8 // 12
+	StoredClientNonce     uint32
 
 	StoredServerTime      uint32
 	StoredServerChallenge []uint8 // 12
+	StoredServerNonce     uint32
 
 	dhGroup       *dhkx.DHGroup
 	ServerPrivKey *dhkx.DHKey
@@ -50,7 +52,7 @@ type Session struct {
 	DecRC5Key []uint8
 	EncRC5Key []uint8
 
-	LastPokeMS uint
+	lastPokeMS time.Time
 }
 
 const (
@@ -66,6 +68,7 @@ func NewSession(clientEndpoint *net.UDPAddr) *Session {
 	return &Session{
 		ClientEndpoint: clientEndpoint,
 		CryptoState:    CryptoState_Init,
+		lastPokeMS:     time.Now(),
 	}
 }
 
@@ -384,4 +387,28 @@ func (s *Session) EncryptPacket(data *[]uint8) bool {
 	*data = message
 
 	return true
+}
+
+// Poke
+//
+// Updates the last time the session has received a packet from the client
+func (s *Session) Poke() {
+
+	s.lastPokeMS = time.Now()
+}
+
+// GetLastPoke
+//
+// Returns the timestamp of the last time the session has received a packet from the client
+func (s *Session) GetLastPoke() time.Time {
+
+	return s.lastPokeMS
+}
+
+// GetLastPokeDuration
+//
+// Returns the duration of time since the last time the session has received a packet from the client
+func (s *Session) GetLastPokeDuration() time.Duration {
+
+	return time.Since(s.lastPokeMS)
 }

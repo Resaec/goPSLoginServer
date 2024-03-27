@@ -6,7 +6,7 @@ import (
 )
 
 type SlottedMetaAck struct {
-	packet.DefaultPacket
+	packet.Base
 	Slot    uint8
 	Subslot uint16
 }
@@ -31,5 +31,5 @@ func (p *SlottedMetaAck) Encode(stream *bitstream.BitStream) (err error) {
 
 	stream.WriteUint16(p.Subslot)
 
-	return nil
+	return stream.GetLastError()
 }

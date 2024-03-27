@@ -6,7 +6,7 @@ import (
 )
 
 type ServerStart struct {
-	packet.DefaultPacket
+	packet.Base
 	ClientNonce uint32  //
 	ServerNonce uint32  //
 	Unk         []uint8 // 11 byte
@@ -27,5 +27,5 @@ func (p *ServerStart) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteUint32(p.ServerNonce)
 	stream.WriteBytes(p.Unk)
 
-	return nil
+	return stream.GetLastError()
 }

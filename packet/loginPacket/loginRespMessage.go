@@ -36,7 +36,7 @@ const (
 )
 
 type LoginRespMessage struct {
-	packet.DefaultPacket
+	packet.Base
 	Token              []uint8 // 16
 	Unk0               []uint8 // 16
 	Error              uint32
@@ -67,5 +67,5 @@ func (p *LoginRespMessage) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteUint32(p.Privilege)
 	stream.WriteBool(p.Privilege != 0)
 
-	return nil
+	return stream.GetLastError()
 }

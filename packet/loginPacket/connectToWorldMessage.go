@@ -6,7 +6,7 @@ import (
 )
 
 type ConnectToWorldMessage struct {
-	packet.DefaultPacket
+	packet.Base
 	ServerName    []uint8 // string
 	ServerAddress []uint8 // string
 	ServerPort    uint16
@@ -26,5 +26,5 @@ func (p *ConnectToWorldMessage) Encode(stream *bitstream.BitStream) (err error) 
 	stream.WriteString(p.ServerAddress)
 	stream.WriteUint16(p.ServerPort)
 
-	return nil
+	return stream.GetLastError()
 }

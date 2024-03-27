@@ -29,7 +29,7 @@ func (ph *PacketHeader) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteUint8(flags)
 	stream.WriteUint16(ph.SeqNum)
 
-	return nil
+	return stream.GetLastError()
 }
 
 func (ph *PacketHeader) Decode(stream *bitstream.BitStream) (err error) {

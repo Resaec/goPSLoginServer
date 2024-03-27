@@ -31,16 +31,20 @@ type Packet interface {
 	Decode(bitstream *bitstream.BitStream) (err error)
 }
 
-type DefaultPacket struct{}
+type Functions struct{}
+type Base struct {
+	Functions
+	Opcode []uint8
+}
 
-func (packet *DefaultPacket) GetOpcode() []uint8 {
+func (packet *Base) GetOpcode() []uint8 {
 	return nil
 }
 
-func (packet *DefaultPacket) Encode(stream *bitstream.BitStream) (err error) {
+func (packet *Functions) Encode(stream *bitstream.BitStream) (err error) {
 	return errors.New(PACKET_ENCODE_NOT_SUPPORTED)
 }
 
-func (packet *DefaultPacket) Decode(stream *bitstream.BitStream) (err error) {
+func (packet *Functions) Decode(stream *bitstream.BitStream) (err error) {
 	return errors.New(PACKET_DECODE_NOT_SUPPORTED)
 }

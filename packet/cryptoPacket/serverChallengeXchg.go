@@ -6,7 +6,7 @@ import (
 )
 
 type ServerChallengeXchg struct {
-	packet.DefaultPacket
+	packet.Base
 	Unk0            uint8
 	Unk1            uint8
 	ServerTime      uint32
@@ -32,7 +32,7 @@ func (p *ServerChallengeXchg) Encode(stream *bitstream.BitStream) (err error) {
 	stream.WriteBytes(p.PubKey)
 	stream.WriteUint8(p.Unk3)
 
-	return nil
+	return stream.GetLastError()
 }
 
 func (p *ServerChallengeXchg) Decode(stream *bitstream.BitStream) (err error) {
@@ -48,5 +48,5 @@ func (p *ServerChallengeXchg) Decode(stream *bitstream.BitStream) (err error) {
 	stream.ReadBytes(&p.PubKey, 16, false)
 	stream.ReadUint8(&p.Unk3, false)
 
-	return nil
+	return stream.GetLastError()
 }

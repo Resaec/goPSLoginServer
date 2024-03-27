@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"goPSLoginServer/packet"
 	"goPSLoginServer/utils/bitstream"
 )
 
@@ -29,7 +28,6 @@ func TestClientStart_Decode(t *testing.T) {
 					hexText: "0001 0000000200261E27000001F0",
 				},
 				expected: &ClientStart{
-					Opcode:      packet.CPOpcode_ClientStart,
 					Unk0:        0x02000000,
 					ClientNonce: 0x271E2600,
 					Unk1:        0xF0010000,

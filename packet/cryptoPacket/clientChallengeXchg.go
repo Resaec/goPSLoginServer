@@ -6,7 +6,7 @@ import (
 )
 
 type ClientChallengeXchg struct {
-	packet.DefaultPacket
+	packet.Base
 	Unk0            uint8
 	Unk1            uint8
 	ClientTime      uint32

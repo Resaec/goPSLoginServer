@@ -7,7 +7,7 @@ import (
 )
 
 type ControlSync struct {
-	packet.DefaultPacket
+	packet.Base
 	TimeDiff uint16
 	Unk      uint32
 	Field1   uint32

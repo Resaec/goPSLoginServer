@@ -29,25 +29,25 @@ func handleControlPacket(
 
 	case packet.CPOpcode_ClientStart:
 		{
-			response, err = handleClientStart(stream)
+			response, err = handleClientStart(stream, sess)
 		}
 
 	case packet.CPOpcode_TeardownConnection:
 		{
-			logging.Infoln("Received TeardownConnection")
+			logging.Noticef("Received TeardownConnection from %s", sess.ClientEndpoint)
 
 			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	case packet.CPOpcode_ConnectionClose:
 		{
-			logging.Infoln("Received ConnectionClose")
+			logging.Noticef("Received ConnectionClose from %s", sess.ClientEndpoint)
 
 			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	default:
-		logging.Errf("Unknown Control Packet: %d\n", opcode)
+		logging.Errf("Unknown Control Packet: %d -> %X\n", opcode, stream.GetBuffer())
 	}
 
 	if err != nil {
@@ -57,7 +57,7 @@ func handleControlPacket(
 	return
 }
 
-func handleClientStart(stream *bitstream.BitStream) (response *bitstream.BitStream, err error) {
+func handleClientStart(stream *bitstream.BitStream, sess *session.Session) (response *bitstream.BitStream, err error) {
 
 	var (
 		clientStart controlPacket.ClientStart
@@ -71,11 +71,17 @@ func handleClientStart(stream *bitstream.BitStream) (response *bitstream.BitStre
 		return
 	}
 
+	sess.StoredClientNonce = clientStart.ClientNonce
+	sess.StoredServerNonce = rand.Uint32()
+
 	serverStart := controlPacket.ServerStart{
-		ClientNonce: clientStart.ClientNonce,
-		ServerNonce: rand.Uint32(),
+		ClientNonce: sess.StoredClientNonce,
+		ServerNonce: sess.StoredServerNonce,
 		Unk:         []uint8{0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xD3, 0x00, 0x00, 0x00, 0x02},
 	}
+
+	logging.Verbosef("ClientNonce: %X", sess.StoredClientNonce)
+	logging.Verbosef("ServerNonce: %X", sess.StoredServerNonce)
 
 	response = &bitstream.BitStream{}
 

@@ -1,10 +1,12 @@
 package loginPacket
 
 import (
+	"goPSLoginServer/packet"
 	"goPSLoginServer/utils/bitstream"
 )
 
 type ConnectToWorldRequestMessage struct {
+	packet.Base
 	ServerName   []uint8 // string
 	Token        []uint8 // 32
 	MajorVersion uint32

@@ -5,26 +5,24 @@ import (
 	"errors"
 
 	"goPSLoginServer/packet"
+
 	"goPSLoginServer/utils/bitstream"
 )
 
-type ClientStart struct {
+type ConnectionClose struct {
 	packet.Base
-	Unk0        uint32
-	ClientNonce uint32
-	Unk1        uint32
 }
 
-func (p *ClientStart) GetOpcode() []uint8 {
+func (p *ConnectionClose) GetOpcode() []uint8 {
 	return []uint8{
 		0x00,
-		packet.CPOpcode_ClientStart,
+		packet.CPOpcode_ConnectionClose,
 	}
 }
 
-func (p *ClientStart) Decode(stream *bitstream.BitStream) (err error) {
+func (p *ConnectionClose) Decode(stream *bitstream.BitStream) (err error) {
 
-	// 00 01 00000002 00261e27 000001f0
+	// 00 1D
 
 	var (
 		opcode = p.GetOpcode()
@@ -36,9 +34,12 @@ func (p *ClientStart) Decode(stream *bitstream.BitStream) (err error) {
 		return errors.New(packet.PACKET_DECODE_ERR_OPCODE_MISMATCH)
 	}
 
-	stream.ReadUint32(&p.Unk0, false)
-	stream.ReadUint32(&p.ClientNonce, false)
-	stream.ReadUint32(&p.Unk1, false)
+	return stream.GetLastError()
+}
+
+func (p *ConnectionClose) Encode(stream *bitstream.BitStream) (err error) {
+
+	stream.WriteBytes(p.GetOpcode())
 
 	return stream.GetLastError()
 }

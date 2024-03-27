@@ -6,7 +6,7 @@ import (
 )
 
 type ClientFinished struct {
-	packet.DefaultPacket
+	packet.Base
 	UnkObjectType   uint8
 	PubKeyLen       uint16
 	PubKey          []uint8 // 16

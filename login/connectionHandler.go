@@ -88,6 +88,9 @@ func HandleLogin() {
 			continue
 		}
 
+		logging.Debugln("Poking session for incoming packet")
+		sess.Poke()
+
 		response, err = packetHandler.HandlePacket(stream, sess)
 		if err != nil {
 			logging.Errf(
@@ -101,7 +104,7 @@ func HandleLogin() {
 		}
 
 		if response == nil {
-			logging.Warnf(
+			logging.Debugf(
 				"No response for packet from client %s:%d\n",
 				readAddress.IP,
 				readAddress.Port,

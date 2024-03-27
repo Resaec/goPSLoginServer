@@ -9,7 +9,8 @@ import (
 const (
 	Empire_TR = iota
 	Empire_NC
-	Empire_VC
+	Empire_VS
+	Empire_NONE
 )
 
 var (

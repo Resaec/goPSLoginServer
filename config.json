@@ -3,7 +3,7 @@
     "ip": "127.0.0.1",
     "port": 51000,
     "createMissingAccounts": true,
-    "loglevel": 5
+    "loglevel": 4
   },
 
   "database": {

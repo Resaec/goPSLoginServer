@@ -2,6 +2,7 @@ package packetHandler
 
 import (
 	"fmt"
+	"strconv"
 
 	"goPSLoginServer/packet"
 	"goPSLoginServer/packet/loginPacket"
@@ -65,10 +66,7 @@ func handleLoginPacket(
 		{
 			return nil, fmt.Errorf(packet.PACKET_OPCODE_NOT_IMPLEMENTED_NORMAL_LOGIN, opcode)
 		}
-
 	}
-
-	return
 }
 
 func handleLoginMessage(
@@ -206,6 +204,12 @@ func handleConnectToWorldRequestMessage(
 		err = fmt.Errorf("Error decoding ConnectToWorldRequestMessage packet: %v", err)
 		return
 	}
+
+	logging.Debugf(
+		"Received ConnectToWorldRequest from %v for world %s",
+		sess.ClientEndpoint,
+		strconv.QuoteToASCII(string(connectToWorldRequestMessage.ServerName)),
+	)
 
 	connectToWorldMessage = &loginPacket.ConnectToWorldMessage{
 		ServerName:    []uint8("PSForever"),
