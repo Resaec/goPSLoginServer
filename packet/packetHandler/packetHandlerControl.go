@@ -34,20 +34,20 @@ func handleControlPacket(
 
 	case packet.CPOpcode_TeardownConnection:
 		{
-			logging.Noticef("Received TeardownConnection from %s", sess.ClientEndpoint)
+			logging.Debugf("Received TeardownConnection from %s", sess.ClientEndpoint)
 
 			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	case packet.CPOpcode_ConnectionClose:
 		{
-			logging.Noticef("Received ConnectionClose from %s", sess.ClientEndpoint)
+			logging.Debugf("Received ConnectionClose from %s", sess.ClientEndpoint)
 
 			session.GetSessionHandler().RemoveSession(sess)
 		}
 
 	default:
-		logging.Errf("Unknown Control Packet: %d -> %X\n", opcode, stream.GetBuffer())
+		logging.Errf("Unknown Control Packet: %d -> %X\n", opcode, stream.GetBufferFromHead())
 	}
 
 	if err != nil {

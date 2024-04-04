@@ -1,5 +1,11 @@
 package utils
 
+import (
+	"reflect"
+	"runtime"
+	"strings"
+)
+
 func BoolToUnt8(in bool) uint8 {
 	if in {
 		return 1
@@ -40,4 +46,14 @@ func SliceUint64(value uint64) []uint8 {
 	result[7] = uint8(value >> 56)
 
 	return result
+}
+
+func GetFunctionName[T any](f T) string {
+
+	fPointer := reflect.ValueOf(f).Pointer()
+	symbolName := runtime.FuncForPC(fPointer).Name()
+	elements := strings.Split(symbolName, "/")
+
+	// get last element of slice
+	return elements[len(elements)-1]
 }

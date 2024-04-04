@@ -23,7 +23,7 @@ type loginServerConfig struct {
 
 type databaseConfig struct {
 	Host     string `json:"host"`
-	Port     int16  `json:"port"`
+	Port     uint16 `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Database string `json:"database"`
@@ -65,14 +65,12 @@ func (conf *config) init() {
 	content, err = os.ReadFile(ConfigFileName)
 	if err != nil {
 		log.Fatalf("Could not read from config file %s: %v", ConfigFileName, err)
-		return
 	}
 
 	// parse json into config object
 	err = json.Unmarshal(content, conf)
 	if err != nil {
 		log.Fatalf("Could not parse config: %v", err)
-		return
 	}
 
 	return

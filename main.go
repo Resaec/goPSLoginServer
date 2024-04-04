@@ -1,10 +1,15 @@
 package main
 
 import (
+	"time"
+
 	"goPSLoginServer/login"
 	"goPSLoginServer/utils"
 	"goPSLoginServer/utils/config"
+	"goPSLoginServer/utils/database"
 	"goPSLoginServer/utils/logging"
+	"goPSLoginServer/utils/session"
+	"goPSLoginServer/utils/timed"
 )
 
 func main() {
@@ -12,6 +17,10 @@ func main() {
 	// init
 	_ = config.GetInstance()
 	logging.Init()
+	database.Init()
+
+	// start session cleanup
+	timed.New(5*time.Second, session.CleanSessions).Start()
 
 	logging.Noticeln(`   ___  ________`)
 	logging.Noticeln(`  / _ \/ __/ __/__  _______ _  _____ ____`)

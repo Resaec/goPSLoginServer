@@ -84,7 +84,11 @@ func HandleLogin() {
 
 		// check for invalid packet
 		if sess == nil {
-			logging.Errf("Dropping packet for client %s because it arrived out of session!", readAddress)
+			logging.Debugf(
+				"Dropping packet with header [%d] for client %s because it arrived out of session!",
+				header,
+				readAddress,
+			)
 			continue
 		}
 
@@ -94,7 +98,7 @@ func HandleLogin() {
 		response, err = packetHandler.HandlePacket(stream, sess)
 		if err != nil {
 			logging.Errf(
-				"Error in Login - dropping connection to %s:%d: %v\n",
+				"Error handling packet from %s:%d: %v",
 				readAddress.IP.String(),
 				readAddress.Port,
 				err,
@@ -105,7 +109,7 @@ func HandleLogin() {
 
 		if response == nil {
 			logging.Debugf(
-				"No response for packet from client %s:%d\n",
+				"No response for packet from client %s:%d",
 				readAddress.IP,
 				readAddress.Port,
 			)

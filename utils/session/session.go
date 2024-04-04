@@ -27,6 +27,9 @@ const (
 type Session struct {
 	ClientEndpoint *net.UDPAddr
 
+	AccountName string
+	AuthToken   []uint8
+
 	CryptoState       int
 	CryptoStateSwitch int
 
@@ -52,7 +55,8 @@ type Session struct {
 	DecRC5Key []uint8
 	EncRC5Key []uint8
 
-	lastPokeMS time.Time
+	connetionStart time.Time
+	lastPokeMS     time.Time
 }
 
 const (
@@ -68,6 +72,7 @@ func NewSession(clientEndpoint *net.UDPAddr) *Session {
 	return &Session{
 		ClientEndpoint: clientEndpoint,
 		CryptoState:    CryptoState_Init,
+		connetionStart: time.Now(),
 		lastPokeMS:     time.Now(),
 	}
 }
@@ -389,6 +394,11 @@ func (s *Session) EncryptPacket(data *[]uint8) bool {
 	return true
 }
 
+func (s *Session) GetConnectionDuration() time.Duration {
+
+	return time.Since(s.connetionStart)
+}
+
 // Poke
 //
 // Updates the last time the session has received a packet from the client
@@ -411,4 +421,22 @@ func (s *Session) GetLastPoke() time.Time {
 func (s *Session) GetLastPokeDuration() time.Duration {
 
 	return time.Since(s.lastPokeMS)
+}
+
+func CleanSessions() {
+
+	var (
+		sessionHander = GetSessionHandler()
+		sessions      = sessionHander.sessions
+	)
+
+	logging.Verbosef("Called CleanSessions")
+
+	for k, sess := range sessions {
+
+		if sess.GetLastPokeDuration() > 30*time.Second {
+			logging.Infof("Removing session [%X] %s because of session timeout", k, sess.ClientEndpoint)
+			sessionHander.RemoveSession(sess)
+		}
+	}
 }

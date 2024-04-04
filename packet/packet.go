@@ -10,7 +10,7 @@ const (
 	PACKET_OPCODE_NOT_IMPLEMENTED = "Packet Opcode [%d] not implemented"
 
 	PACKET_CRYPTO_STATE_NOT_IMPLEMENTED = "Crypto packet state [%d] not implemented"
-	PACKET_CRYPTO_STATE_UNKNOWN         = "Crypto packet for unknown state [%d]"
+	PACKET_CRYPTO_STATE_UNKNOWN         = "Crypto packet state [%d] is unknown"
 
 	PACKET_OPCODE_NOT_IMPLEMENTED_NORMAL_CONTROL = "Encrypted control packet Opcode [%d] not implemented"
 	PACKET_OPCODE_NOT_IMPLEMENTED_NORMAL_LOGIN   = "Encrypted login packet Opcode [%d] not implemented"

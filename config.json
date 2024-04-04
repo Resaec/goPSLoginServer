@@ -3,15 +3,15 @@
     "ip": "127.0.0.1",
     "port": 51000,
     "createMissingAccounts": true,
-    "loglevel": 4
+    "loglevel": 3
   },
 
   "database": {
     "host": "127.0.0.1",
     "port": 5432,
-    "user": "psforever",
-    "password": "psforever",
-    "database": "psforever",
+    "user": "psflogin",
+    "password": "psflogin",
+    "database": "psflogin",
     "sslmode": "prefer"
   }
 }
